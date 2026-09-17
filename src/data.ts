@@ -48,3 +48,9 @@ export const projects = [
     href: 'https://github.com/JamS1t/floatwatch',
   },
 ]
+
+export const highlights = [
+  { value: '2+ yrs', label: 'In production' },
+  { value: '3', label: 'Live products' },
+  { value: 'UTC+8', label: 'Timezone' },
+]

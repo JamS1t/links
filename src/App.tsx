@@ -1,23 +1,22 @@
 import { useState, type ReactNode } from 'react'
 import { MeshGradient } from '@paper-design/shaders-react'
-import { CalendarDays, Check, ChevronRight, Copy, Globe, Mail, Share2, UserPlus } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, Copy, Globe, Mail, MapPin, Share2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { BrandIcon } from '@/components/brand-icons'
 import { Glass, GlassFilter } from '@/components/glass'
-import { profile, projects, socials, type Social } from '@/data'
+import { highlights, profile, projects, socials, type Social } from '@/data'
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 export default function App() {
   return (
-    <TooltipProvider>
+    <>
       <GlassFilter />
       <Background />
-      <main className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col gap-10 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] sm:max-w-lg sm:pt-8">
+      <main className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col gap-8 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] sm:max-w-lg sm:pt-8">
         <TopBar />
         <Hero />
         <Actions />
@@ -35,7 +34,7 @@ export default function App() {
         <Section
           title="Selected work"
           action={
-            <a href={`${profile.site}/work/`} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <a href={`${profile.site}/work/`} className="text-[15px] text-white/80 transition-colors [text-shadow:0_1px_12px_rgb(0_0_0/0.6)] hover:text-white">
               See all
             </a>
           }
@@ -50,8 +49,8 @@ export default function App() {
                         <span className="text-[17px] font-semibold tracking-tight">{p.name}</span>
                         <span className={p.status === 'Building' ? 'text-[13px] text-[#ff9ec0]' : 'text-[13px] text-[#5eead4]'}>{p.status}</span>
                       </span>
-                      <span className="text-[15px] leading-snug text-white/70">{p.blurb}</span>
-                      <span className="mt-0.5 text-[13px] text-white/45">{p.stack.join(' · ')}</span>
+                      <span className="text-[15px] leading-snug text-white/80">{p.blurb}</span>
+                      <span className="mt-0.5 text-[13px] text-white/60">{p.stack.join(' · ')}</span>
                     </span>
                     <ChevronRight className="mt-1 size-4 shrink-0 text-white/35" aria-hidden />
                   </a>
@@ -60,10 +59,10 @@ export default function App() {
             </ul>
           </Glass>
         </Section>
-        <footer className="mt-auto pt-4 text-sm text-muted-foreground">© {new Date().getFullYear()} {profile.name}</footer>
+        <footer className="mt-auto pt-4 text-center text-[13px] text-white/60">© {new Date().getFullYear()} {profile.name}</footer>
       </main>
       <Toaster theme="dark" position="top-center" />
-    </TooltipProvider>
+    </>
   )
 }
 
@@ -73,13 +72,13 @@ function Background() {
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-background">
       <MeshGradient
         className="absolute inset-0 size-full"
-        colors={['#0f0f0f', '#00d4aa', '#00a3cc', '#ff6b9d', '#0f0f0f']}
+        colors={['#0a0a0a', '#0a8f78', '#0b5f86', '#a23a64', '#0a0a0a']}
         distortion={0.9}
         swirl={0.35}
         grainOverlay={0.12}
         speed={reducedMotion ? 0 : 0.2}
       />
-      <div className="absolute inset-0 bg-linear-to-b from-background/25 via-background/45 to-background/60" />
+      <div className="absolute inset-0 bg-linear-to-b from-background/45 via-background/40 to-background/65" />
     </div>
   )
 }
@@ -97,7 +96,7 @@ function TopBar() {
 
   return (
     <header className="flex h-12 items-center justify-between">
-      <a href={profile.site} className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground">
+      <a href={profile.site} className="text-[15px] font-semibold text-white/90 transition-colors [text-shadow:0_1px_12px_rgb(0_0_0/0.6)] hover:text-white">
         sitsit.dev
       </a>
       <Glass className="rounded-full">
@@ -111,22 +110,35 @@ function TopBar() {
 
 function Hero() {
   return (
-    <section className="flex flex-col gap-5">
-      <Avatar className="size-22 ring-2 ring-white/20 after:hidden">
-        <AvatarImage src="/avatar.jpg" alt={profile.name} />
-        <AvatarFallback className="text-xl">JC</AvatarFallback>
-      </Avatar>
-      <div>
-        <h1 className="text-[2rem] leading-tight font-semibold tracking-tight">{profile.name}</h1>
-        <p className="mt-1 text-foreground/80">{profile.role}</p>
-        <p className="mt-0.5 text-sm text-muted-foreground">{profile.location}</p>
+    <Glass className="flex flex-col items-center px-5 pt-8 pb-5 text-center">
+      <div className="rounded-full bg-linear-to-br from-[#5eead4] via-[#38bdf8] to-[#ff6b9d] p-[3px] shadow-[0_12px_32px_-8px_rgb(0_0_0/0.6)]">
+        <div className="rounded-full bg-[#0f0f0f] p-[3px]">
+          <Avatar className="size-28 after:hidden">
+            <AvatarImage src="/avatar.jpg" alt={profile.name} />
+            <AvatarFallback className="text-2xl">JC</AvatarFallback>
+          </Avatar>
+        </div>
       </div>
-      <p className="text-[15px] leading-relaxed text-pretty text-foreground/75">{profile.bio}</p>
-      <p className="flex items-center gap-2 text-sm text-foreground/90">
-        <span className="size-2 rounded-full bg-primary" aria-hidden />
+      <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#00d4aa]/15 px-3 py-1 text-[13px] font-medium text-[#7df3dc] ring-1 ring-[#00d4aa]/30">
+        <span className="size-1.5 rounded-full bg-[#34f5c5]" aria-hidden />
         {profile.availability}
+      </span>
+      <h1 className="mt-3 text-[34px] leading-tight font-bold tracking-tight">{profile.name}</h1>
+      <p className="mt-1 text-[17px] text-white/85">{profile.role}</p>
+      <p className="mt-1 flex items-center gap-1 text-[15px] text-white/60">
+        <MapPin className="size-3.5" aria-hidden />
+        {profile.location}
       </p>
-    </section>
+      <p className="mt-4 text-[15px] leading-relaxed text-pretty text-white/80">{profile.bio}</p>
+      <dl className="mt-5 grid w-full grid-cols-3 divide-x divide-white/12 border-t border-white/12 pt-4">
+        {highlights.map((h) => (
+          <div key={h.label} className="flex flex-col-reverse gap-0.5">
+            <dt className="text-[12px] text-white/55">{h.label}</dt>
+            <dd className="text-[19px] font-semibold tracking-tight">{h.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </Glass>
   )
 }
 
@@ -141,46 +153,40 @@ function Actions() {
   }
 
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex flex-col gap-2.5">
       <Button asChild size="lg" className="h-13 rounded-full text-[16px] font-semibold shadow-[0_8px_24px_-8px_rgb(0_212_170/0.6)] active:scale-[0.98]">
         <a href={profile.booking} target="_blank" rel="noopener">
           <CalendarDays />
           Book a 20-min intro call
         </a>
       </Button>
-      <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-        <Glass className="rounded-full">
-          <Button asChild variant="ghost" size="lg" className={glassButton('w-full text-[16px]')}>
-            <a href={`mailto:${profile.email}?subject=Project%20inquiry`}>
-              <Mail />
-              Email me
-            </a>
-          </Button>
-        </Glass>
-        <Glass className="rounded-full">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" className={glassButton('w-13')} onClick={copyEmail} aria-label="Copy email address">
-                {copied ? <Check className="text-[#5eead4]" /> : <Copy />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Copy email</TooltipContent>
-          </Tooltip>
-        </Glass>
-        <Glass className="rounded-full">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild variant="ghost" className={glassButton('w-13')}>
-                <a href="/james-carl-sitsit.vcf" download aria-label="Save contact">
-                  <UserPlus />
-                </a>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Save contact</TooltipContent>
-          </Tooltip>
-        </Glass>
+      <div className="grid grid-cols-3 gap-2.5">
+        <ActionTile label="Email" icon={<Mail />} href={`mailto:${profile.email}?subject=Project%20inquiry`} />
+        <ActionTile label={copied ? 'Copied' : 'Copy email'} icon={copied ? <Check className="text-[#5eead4]" /> : <Copy />} onClick={copyEmail} />
+        <ActionTile label="Save contact" icon={<UserPlus />} href="/james-carl-sitsit.vcf" download />
       </div>
     </section>
+  )
+}
+
+// iOS Contacts-style action: glass tile, icon over a small label.
+function ActionTile({ label, icon, href, download, onClick }: { label: string; icon: ReactNode; href?: string; download?: boolean; onClick?: () => void }) {
+  const cls =
+    'flex h-[68px] w-full flex-col items-center justify-center gap-1.5 text-[13px] font-medium text-white outline-none transition-[background-color,transform] duration-200 hover:bg-white/[0.06] focus-visible:bg-white/10 active:scale-[0.96] [&_svg]:size-5'
+  return (
+    <Glass className="rounded-[20px]">
+      {href ? (
+        <a href={href} download={download} className={cls}>
+          {icon}
+          {label}
+        </a>
+      ) : (
+        <button type="button" onClick={onClick} className={cls}>
+          {icon}
+          {label}
+        </button>
+      )}
+    </Glass>
   )
 }
 
@@ -188,7 +194,7 @@ function Section({ title, action, children }: { title: string; action?: ReactNod
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between px-1">
-        <h2 className="text-[22px] font-bold tracking-tight">{title}</h2>
+        <h2 className="text-[22px] font-bold tracking-tight [text-shadow:0_1px_12px_rgb(0_0_0/0.6)]">{title}</h2>
         {action}
       </div>
       {children}
@@ -209,9 +215,6 @@ const rowClass = (inset: string) =>
 const linkClass = (extra: string) =>
   `flex outline-none transition-colors duration-150 hover:bg-white/[0.06] focus-visible:bg-white/[0.08] active:bg-white/10 ${extra}`
 
-const glassButton = (extra: string) =>
-  `h-13 rounded-full bg-transparent text-white hover:bg-white/[0.06] active:scale-[0.97] transition-[background-color,transform] duration-200 ${extra}`
-
 function LinkRow({ href, icon, tile, label, sub }: { href: string; icon: ReactNode; tile: string; label: string; sub: string }) {
   const external = href.startsWith('http')
   return (
@@ -221,7 +224,7 @@ function LinkRow({ href, icon, tile, label, sub }: { href: string; icon: ReactNo
           {icon}
         </span>
         <span className="text-[17px]">{label}</span>
-        <span className="ml-auto min-w-0 truncate text-[15px] text-white/50">{sub}</span>
+        <span className="ml-auto min-w-0 truncate text-[15px] text-white/65">{sub}</span>
         <ChevronRight className="size-4 shrink-0 text-white/35" aria-hidden />
       </a>
     </li>
