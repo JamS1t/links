@@ -182,7 +182,7 @@ function Actions() {
       <div className="grid grid-cols-3 gap-2.5">
         <ActionTile label="Email" icon={<Mail />} href={`mailto:${profile.email}?subject=Project%20inquiry`} />
         <ActionTile label={copied ? 'Copied' : 'Copy email'} icon={copied ? <Check /> : <Copy />} onClick={copyEmail} />
-        <ActionTile label="Save contact" icon={<UserPlus />} href={contactHref()} />
+        <ActionTile label="Save contact" icon={<UserPlus />} href="/james-carl-sitsit.vcf" />
       </div>
     </section>
   )
@@ -242,26 +242,6 @@ function LinkRow({ href, icon, label, sub }: { href: string; icon: ReactNode; la
       </a>
     </li>
   )
-}
-
-const VCARD = '/james-carl-sitsit.vcf'
-
-// iOS opens the .vcf in its native "Add to Contacts" sheet. Android Chrome always downloads a .vcf,
-// so there we open the Contacts app's "new contact" form directly via an intent URL; if no app
-// accepts it, Chrome follows browser_fallback_url back to the .vcf.
-function contactHref() {
-  if (!/Android/i.test(navigator.userAgent)) return VCARD
-  const extras: Record<string, string> = {
-    name: profile.name,
-    email: profile.email,
-    job_title: profile.role,
-    notes: [profile.site, ...socials.map((s) => s.href)].join('\n'),
-    browser_fallback_url: new URL(VCARD, location.href).href,
-  }
-  const params = Object.entries(extras)
-    .map(([k, v]) => `S.${k}=${encodeURIComponent(v)}`)
-    .join(';')
-  return `intent:#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/raw_contact;${params};end`
 }
 
 async function copy(text: string, message: string) {
