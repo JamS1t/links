@@ -34,6 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: https://linktree.sitsit.dev
+      url: https://hi.sitsit.dev
     steps:
       - uses: actions/deploy-pages@v4
