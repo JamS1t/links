@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Sitsit;James Carl;;;
+FN:James Carl Sitsit
+TITLE:Full-stack developer · AI engineer
+EMAIL;TYPE=INTERNET:jamescarlsitsit@gmail.com
+URL:https://sitsit.dev
+URL;TYPE=LinkedIn:https://www.linkedin.com/in/james-carl-sitsit
+URL;TYPE=GitHub:https://github.com/JamS1t
+URL;TYPE=Instagram:https://www.instagram.com/jamescarlsitsit/
+ADR;TYPE=WORK:;;;Eastern Visayas;;;Philippines
+END:VCARD
