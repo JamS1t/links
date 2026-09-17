@@ -182,20 +182,21 @@ function Actions() {
       <div className="grid grid-cols-3 gap-2.5">
         <ActionTile label="Email" icon={<Mail />} href={`mailto:${profile.email}?subject=Project%20inquiry`} />
         <ActionTile label={copied ? 'Copied' : 'Copy email'} icon={copied ? <Check /> : <Copy />} onClick={copyEmail} />
-        <ActionTile label="Save contact" icon={<UserPlus />} href="/james-carl-sitsit.vcf" download />
+        {/* No download attribute: opening the .vcf lets the phone show its own "Add to Contacts" screen. */}
+        <ActionTile label="Save contact" icon={<UserPlus />} href="/james-carl-sitsit.vcf" />
       </div>
     </section>
   )
 }
 
 // iOS Contacts-style action: glass tile, icon over a small label.
-function ActionTile({ label, icon, href, download, onClick }: { label: string; icon: ReactNode; href?: string; download?: boolean; onClick?: () => void }) {
+function ActionTile({ label, icon, href, onClick }: { label: string; icon: ReactNode; href?: string; onClick?: () => void }) {
   const cls =
     'flex h-[68px] w-full flex-col items-center justify-center gap-1.5 text-[13px] font-medium text-white outline-none transition-[background-color,transform] duration-200 hover:bg-white/[0.06] focus-visible:bg-white/10 active:scale-[0.96] [&_svg]:size-5'
   return (
     <Glass className="rounded-[20px]">
       {href ? (
-        <a href={href} download={download} className={cls}>
+        <a href={href} className={cls}>
           {icon}
           {label}
         </a>
