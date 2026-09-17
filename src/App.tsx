@@ -4,6 +4,7 @@ import { CalendarDays, Check, ChevronRight, Copy, Globe, Mail, MapPin, Share2, U
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
+import { AsciiPortrait } from '@/components/ascii-portrait'
 import { BrandIcon } from '@/components/brand-icons'
 import { Glass, GlassFilter } from '@/components/glass'
 import { highlights, profile, projects, socials } from '@/data'
@@ -16,11 +17,12 @@ export default function App() {
     <>
       <GlassFilter />
       <Background />
+      <div aria-hidden className="page-end-glow pointer-events-none fixed inset-x-0 bottom-0 -z-[7] h-[70svh]" />
       <div className="relative mx-auto w-full sm:max-w-lg sm:px-4 sm:pt-6">
         <Cover />
       </div>
       <main className="relative mx-auto flex w-full max-w-md flex-col gap-8 px-4 pb-[max(2rem,env(safe-area-inset-bottom))] sm:max-w-lg">
-        <p className={`px-1 text-[16px] leading-relaxed text-pretty text-white/90 ${shadow}`}>{profile.bio}</p>
+        <p className="px-1 text-[16px] leading-relaxed text-pretty text-white [text-shadow:0_0_3px_rgb(0_0_0),0_1px_14px_rgb(0_0_0/0.85)]">{profile.bio}</p>
         <Actions />
         <Glass>
           <dl className="grid grid-cols-3 divide-x divide-white/12 py-4 text-center">
@@ -115,11 +117,15 @@ function Cover() {
           Masked (not overlaid) fade, so it dissolves into the live gradient without a seam. */}
       <div
         aria-hidden
-        className="fixed inset-x-0 top-0 -z-[5] mx-auto aspect-[4/5] max-h-[82svh] w-full overflow-hidden [mask-image:linear-gradient(to_bottom,black_55%,transparent_92%)] sm:top-6 sm:max-w-[30rem] sm:rounded-t-[32px]"
+        className="fixed inset-x-0 top-0 -z-[5] mx-auto aspect-[4/5] max-h-[82svh] w-full overflow-hidden [mask-image:linear-gradient(to_bottom,black_68%,transparent_100%)] sm:top-6 sm:max-w-[30rem] sm:rounded-t-[32px]"
       >
-        <img src="/cover.jpg" alt="" className="cover-photo h-full w-full object-cover object-[50%_0%] brightness-90 contrast-[1.05] saturate-[0.75]" />
+        <div className="cover-photo-fade absolute inset-0">
+          <img src="/cover.jpg" alt="" className="cover-photo h-full w-full object-cover object-[50%_0%] brightness-90 contrast-[1.05] saturate-[0.75]" />
+        </div>
         <div className="absolute inset-0 bg-linear-to-b from-black/45 via-transparent via-25% to-black/60" />
         <div className="cover-dim absolute inset-0 bg-black opacity-0" />
+        {/* Above the dim layer on purpose: the ASCII version stays bright for the rest of the page. */}
+        <AsciiPortrait src="/cover.jpg" className="cover-ascii absolute inset-0 size-full" />
       </div>
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <a href={profile.site} className={`text-[15px] font-semibold text-white transition-opacity ${shadow} hover:opacity-80`}>

@@ -205,15 +205,44 @@ html {
 }
 }
 
-/* Scroll-driven cover parallax (native CSS, no JS). Unsupported browsers just keep the pinned photo.
+/* Scroll-driven cover (native CSS, no JS). Unsupported browsers / reduced motion keep the pinned photo only.
    Only transform + opacity animate, so it stays on the compositor. */
+.cover-ascii,
+.page-end-glow {
+    opacity: 0;
+}
+
+.cover-photo,
+.cover-ascii {
+    transform-origin: 50% 55%; /* zoom toward the face */
+}
+
+/* Silver light rising from the bottom edge near the end of the page. */
+.page-end-glow {
+    background:
+        radial-gradient(120% 75% at 50% 115%, rgb(201 204 211 / 0.38), rgb(93 98 112 / 0.18) 45%, transparent 72%),
+        linear-gradient(to top, rgb(141 147 158 / 0.14), transparent 60%);
+}
+
 @supports (animation-timeline: scroll()) {
     @media (prefers-reduced-motion: no-preference) {
         .cover-photo {
-            transform-origin: 50% 20%;
             animation: cover-zoom linear both;
             animation-timeline: scroll(root);
             animation-range: 0 90svh;
+        }
+
+        /* Photo → ASCII crossfade while zooming. */
+        .cover-photo-fade {
+            animation: fade-out linear both;
+            animation-timeline: scroll(root);
+            animation-range: 8svh 45svh;
+        }
+
+        .cover-ascii {
+            animation: cover-zoom linear both, fade-in linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 90svh, 8svh 45svh;
         }
 
         .cover-dim {
@@ -226,6 +255,12 @@ html {
             animation: cover-title linear both;
             animation-timeline: scroll(root);
             animation-range: 0 40svh;
+        }
+
+        .page-end-glow {
+            animation: fade-in linear both;
+            animation-timeline: scroll(root);
+            animation-range: 55% 100%;
         }
     }
 }
@@ -240,4 +275,13 @@ html {
 
 @keyframes cover-title {
     to { opacity: 0; transform: translateY(-32px); }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fade-out {
+    to { opacity: 0; }
 }
