@@ -4,7 +4,20 @@ const RAMP = ' .:-=+*#%@' // dark → bright
 
 // Draws `src` as ASCII art (object-fit: cover, top-anchored, same framing as the cover <img>).
 // Rendered once per size; CSS (.cover-ascii) fades it in on scroll.
-export function AsciiPortrait({ src, className }: { src: string; className?: string }) {
+// fontSize/maxDpr/intensity default to the site's values; the print card passes a smaller font, full DPR, stronger ink.
+export function AsciiPortrait({
+  src,
+  className,
+  fontSize,
+  maxDpr = 2,
+  intensity = 1,
+}: {
+  src: string
+  className?: string
+  fontSize?: number
+  maxDpr?: number
+  intensity?: number
+}) {
   const ref = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -16,11 +29,11 @@ export function AsciiPortrait({ src, className }: { src: string; className?: str
       const { width, height } = canvas.getBoundingClientRect()
       if (!width || !height || !img.naturalWidth) return
 
-      const dpr = Math.min(devicePixelRatio || 1, 2) * 1.2 // headroom for the scroll zoom
+      const dpr = Math.min(devicePixelRatio || 1, maxDpr) * 1.2 // headroom for the scroll zoom
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
 
-      const font = width < 480 ? 7 : 8
+      const font = fontSize ?? (width < 480 ? 7 : 8)
       const cols = Math.floor(width / (font * 0.62))
       const rows = Math.floor(height / font)
       const cellW = width / cols
@@ -49,7 +62,7 @@ export function AsciiPortrait({ src, className }: { src: string; className?: str
           const t = tone[y * cols + x]
           if (t < 0.08) continue // deepest shadows stay empty
           const ch = RAMP[Math.min(RAMP.length - 1, Math.ceil(t * (RAMP.length - 1)))]
-          ctx.fillStyle = `rgb(214 218 226 / ${0.12 + t * 0.43})` // capped so text and glass on top stay legible
+          ctx.fillStyle = `rgb(214 218 226 / ${Math.min(1, (0.12 + t * 0.43) * intensity)})` // capped so text and glass on top stay legible
           ctx.fillText(ch, x * cellW, y * cellH)
         }
       }
@@ -67,7 +80,7 @@ export function AsciiPortrait({ src, className }: { src: string; className?: str
       ro.disconnect()
       cancelAnimationFrame(raf)
     }
-  }, [src])
+  }, [src, fontSize, maxDpr, intensity])
 
   return <canvas ref={ref} aria-hidden className={className} />
 }

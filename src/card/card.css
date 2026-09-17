@@ -1,0 +1,286 @@
+/* NFC card, CR80: 85.6 × 54 mm trim + 2 mm bleed per side = 89.6 × 58 mm.
+   Scale: 1 mm = 10 px. Keep text and key art inside .safe (3 mm inside the trim line). */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #1a1b1e;
+  color: #f5f5f7;
+  font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sheet {
+  position: relative;
+  width: 896px;
+  height: 580px;
+  overflow: hidden;
+  background: #0a0a0b;
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(55% 75% at 88% 12%, rgb(141 147 158 / 0.42), transparent 62%),
+    radial-gradient(65% 85% at 8% 108%, rgb(61 66 76 / 0.75), transparent 66%),
+    radial-gradient(45% 55% at 42% 45%, rgb(35 38 44 / 0.9), transparent 72%),
+    #0a0a0b;
+}
+
+.back .bg {
+  background:
+    radial-gradient(55% 75% at 12% 10%, rgb(141 147 158 / 0.4), transparent 62%),
+    radial-gradient(65% 85% at 96% 106%, rgb(61 66 76 / 0.75), transparent 66%),
+    radial-gradient(45% 55% at 60% 50%, rgb(35 38 44 / 0.9), transparent 72%),
+    #0a0a0b;
+}
+
+/* Film grain so the flat gradient doesn't band in print. */
+.grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.safe {
+  position: absolute;
+  inset: 50px; /* 2 mm bleed + 3 mm safe margin */
+}
+
+/* ---------- Front ---------- */
+
+.portrait {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 540px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 48%), linear-gradient(to bottom, #000 72%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0%, #000 48%), linear-gradient(to bottom, #000 72%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.ascii {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.wordmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Liquid-glass pill, same recipe as the site's .glass: translucent fill, bright top rim, soft shadow. */
+.pill {
+  position: absolute;
+  top: -8px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 58px;
+  padding: 0 24px 0 16px;
+  border-radius: 29px;
+  font-size: 24px;
+  font-weight: 600;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.06));
+  box-shadow:
+    inset 0 1.5px 0 rgb(255 255 255 / 0.45),
+    inset 0 0 0 1.5px rgb(255 255 255 / 0.14),
+    0 8px 24px rgb(0 0 0 / 0.4);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+
+.pill svg {
+  width: 30px;
+  height: 30px;
+}
+
+.identity {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  text-shadow: 0 2px 16px rgb(0 0 0 / 0.6);
+}
+
+h1 {
+  font-size: 80px;
+  line-height: 0.9;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.role {
+  margin-top: 16px;
+  font-size: 24px;
+  color: rgb(255 255 255 / 0.85);
+}
+
+.loc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 20px;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.loc svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---------- Back ---------- */
+
+.back .safe {
+  display: flex;
+  align-items: center;
+  gap: 44px;
+}
+
+/* Frosted-silver tile: dark dots on light keep the QR scannable by every camera app. */
+.qr-tile {
+  flex: none;
+  width: 390px;
+  height: 390px;
+  padding: 34px;
+  border-radius: 40px;
+  color: #0a0a0b;
+  background: linear-gradient(155deg, #f8f9fb 0%, #e4e6eb 55%, #cdd1d8 100%);
+  box-shadow:
+    inset 0 2px 0 #fff,
+    inset 0 -2px 0 rgb(0 0 0 / 0.08),
+    0 16px 40px rgb(0 0 0 / 0.55);
+}
+
+.qr {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+h2 {
+  font-size: 52px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.sub {
+  margin-top: 8px;
+  font-size: 20px;
+  color: rgb(255 255 255 / 0.6);
+}
+
+.rows {
+  margin-top: 26px;
+  list-style: none;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.11), rgb(255 255 255 / 0.04));
+  box-shadow:
+    inset 0 1.5px 0 rgb(255 255 255 / 0.3),
+    inset 0 0 0 1.5px rgb(255 255 255 / 0.1);
+}
+
+.rows li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 50px;
+  padding: 0 18px;
+  font-size: 19px;
+  white-space: nowrap;
+}
+
+/* iOS-style inset separator, like the site's grouped lists. */
+.rows li + li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 52px;
+  height: 1.5px;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.rows svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: rgb(255 255 255 / 0.75);
+}
+
+.tap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 18px;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.tap svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ---------- Preview (no ?side) ---------- */
+
+.stage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 60px;
+  padding: 60px;
+  background: radial-gradient(circle at 50% 0%, #2a2c31, #111214 70%);
+  min-height: 100vh;
+}
+
+figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+/* Trim to the real card: 85.6 × 54 mm, corner radius 3.18 mm. */
+.trim {
+  width: 856px;
+  height: 540px;
+  border-radius: 31.8px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.08) inset,
+    0 30px 80px rgb(0 0 0 / 0.6);
+}
+
+.trim .sheet {
+  margin: -20px;
+}
+
+figcaption {
+  font-size: 18px;
+  color: rgb(255 255 255 / 0.5);
+}
