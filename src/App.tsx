@@ -20,7 +20,7 @@ export default function App() {
         <Cover />
       </div>
       <main className="relative mx-auto flex w-full max-w-md flex-col gap-8 px-4 pb-[max(2rem,env(safe-area-inset-bottom))] sm:max-w-lg">
-        <p className="px-1 text-[16px] leading-relaxed text-pretty text-white/80">{profile.bio}</p>
+        <p className={`px-1 text-[16px] leading-relaxed text-pretty text-white/90 ${shadow}`}>{profile.bio}</p>
         <Actions />
         <Glass>
           <dl className="grid grid-cols-3 divide-x divide-white/12 py-4 text-center">
@@ -110,11 +110,16 @@ function Cover() {
   const split = profile.name.lastIndexOf(' ')
 
   return (
-    <header className="relative isolate aspect-[4/5] max-h-[82svh] w-full overflow-hidden sm:rounded-t-[32px]">
-      {/* Masked (not overlaid) fade, so the photo dissolves into the live gradient without a seam. */}
-      <div aria-hidden className="absolute inset-0 [mask-image:linear-gradient(to_bottom,black_55%,transparent_92%)]">
-        <img src="/cover.jpg" alt="" className="h-full w-full object-cover object-[50%_0%] brightness-90 contrast-[1.05] saturate-[0.75]" />
+    <header className="relative aspect-[4/5] max-h-[82svh] w-full">
+      {/* Pinned photo: the page scrolls over it (glass refracts it), while .cover-photo zooms and dims.
+          Masked (not overlaid) fade, so it dissolves into the live gradient without a seam. */}
+      <div
+        aria-hidden
+        className="fixed inset-x-0 top-0 -z-[5] mx-auto aspect-[4/5] max-h-[82svh] w-full overflow-hidden [mask-image:linear-gradient(to_bottom,black_55%,transparent_92%)] sm:top-6 sm:max-w-[30rem] sm:rounded-t-[32px]"
+      >
+        <img src="/cover.jpg" alt="" className="cover-photo h-full w-full object-cover object-[50%_0%] brightness-90 contrast-[1.05] saturate-[0.75]" />
         <div className="absolute inset-0 bg-linear-to-b from-black/45 via-transparent via-25% to-black/60" />
+        <div className="cover-dim absolute inset-0 bg-black opacity-0" />
       </div>
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <a href={profile.site} className={`text-[15px] font-semibold text-white transition-opacity ${shadow} hover:opacity-80`}>
@@ -126,7 +131,7 @@ function Cover() {
           </Button>
         </Glass>
       </div>
-      <div className={`absolute inset-x-0 bottom-0 px-5 pb-5 ${shadow}`}>
+      <div className={`cover-title absolute inset-x-0 bottom-0 px-5 pb-5 ${shadow}`}>
         <p className="mb-3 flex items-center gap-2 text-[13px] font-medium text-white/85">
           <span className="size-1.5 rounded-full bg-white" aria-hidden />
           {profile.availability}

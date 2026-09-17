@@ -204,3 +204,40 @@ html {
     opacity: 1;
 }
 }
+
+/* Scroll-driven cover parallax (native CSS, no JS). Unsupported browsers just keep the pinned photo.
+   Only transform + opacity animate, so it stays on the compositor. */
+@supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+        .cover-photo {
+            transform-origin: 50% 20%;
+            animation: cover-zoom linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 90svh;
+        }
+
+        .cover-dim {
+            animation: cover-dim linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 55svh;
+        }
+
+        .cover-title {
+            animation: cover-title linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 40svh;
+        }
+    }
+}
+
+@keyframes cover-zoom {
+    to { transform: scale(1.15); }
+}
+
+@keyframes cover-dim {
+    to { opacity: 0.6; }
+}
+
+@keyframes cover-title {
+    to { opacity: 0; transform: translateY(-32px); }
+}
