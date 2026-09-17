@@ -112,9 +112,9 @@ function Cover() {
   return (
     <header className="relative isolate aspect-[4/5] max-h-[82svh] w-full overflow-hidden sm:rounded-t-[32px]">
       {/* Masked (not overlaid) fade, so the photo dissolves into the live gradient without a seam. */}
-      <div aria-hidden className="absolute inset-0 [mask-image:linear-gradient(to_bottom,black_40%,transparent_78%)]">
+      <div aria-hidden className="absolute inset-0 [mask-image:linear-gradient(to_bottom,black_55%,transparent_92%)]">
         <img src="/cover.jpg" alt="" className="h-full w-full object-cover object-[50%_0%] brightness-90 contrast-[1.05] saturate-[0.75]" />
-        <div className="absolute inset-0 bg-linear-to-b from-black/45 via-transparent via-25% to-black/40" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/45 via-transparent via-25% to-black/60" />
       </div>
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <a href={profile.site} className={`text-[15px] font-semibold text-white transition-opacity ${shadow} hover:opacity-80`}>
