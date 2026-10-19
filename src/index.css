@@ -18,6 +18,10 @@
     --color-accent-hover: #2f40b8;
     --color-accent-soft: #eef0fd;
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --shadow-frame: 0 0 0 1px rgb(9 9 11 / 0.06), 0 1px 2px rgb(9 9 11 / 0.04), 0 8px 24px -6px rgb(9 9 11 / 0.1),
+        0 32px 64px -24px rgb(9 9 11 / 0.16);
+    --shadow-frame-hover: 0 0 0 1px rgb(9 9 11 / 0.08), 0 1px 2px rgb(9 9 11 / 0.05), 0 12px 32px -8px rgb(9 9 11 / 0.14),
+        0 40px 80px -28px rgb(9 9 11 / 0.22);
 }
 
 @theme inline {
@@ -187,6 +191,19 @@
         overflow: hidden;
     }
 
+    /* sitsit.dev's product window: every reel sits in it. */
+    .frame {
+        border-radius: 14px;
+        background: var(--color-canvas);
+        padding: 6px;
+        box-shadow: var(--shadow-frame);
+    }
+    .frame-inner {
+        border-radius: 9px;
+        overflow: hidden;
+        background: var(--color-muted);
+    }
+
     .chat-panel {
         animation: chat-rise 0.22s var(--ease-out-expo) both;
     }
@@ -201,7 +218,7 @@
 /* Pinned ASCII portrait: always ASCII. On scroll it only zooms a little and fades back
    so the white sheet scrolling over it stays calm. Transform + opacity only. */
 .cover-ascii {
-    transform-origin: 50% 55%;
+    transform-origin: 50% 40%;
 }
 
 .enter {

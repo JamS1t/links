@@ -18,39 +18,83 @@ export const socials: { id: Social; label: string; handle: string; href: string 
   { id: 'instagram', label: 'Instagram', handle: '@jamescarlsitsit', href: 'https://www.instagram.com/jamescarlsitsit/' },
 ]
 
-export const projects = [
+// Mirrors src/data/projects.ts on sitsit.dev (same order, names, taglines, statuses). Media is served from sitsit.dev.
+export type Project = {
+  name: string
+  tagline: string
+  status: 'Live' | 'Maintained' | 'Shipped' | 'Building' | 'Idea'
+  stack: string[]
+  href: string
+  image?: string
+  video?: string
+}
+
+const work = (slug: string) => `https://sitsit.dev/work/${slug}`
+
+export const projects: Project[] = [
   {
     name: 'AlgoLens',
-    blurb: 'AI pre-post reviewer that scores and rewrites posts for X.',
+    tagline: 'AI pre-post reviewer that scores and rewrites posts for X',
     status: 'Live',
     stack: ['React', 'Express', 'Gemini'],
-    href: 'https://algolens.app',
+    href: work('algolens/'),
+    image: work('algolens.webp'),
+    video: work('algolens.mp4'),
   },
   {
-    name: 'StockPilot',
-    blurb: 'Inventory and POS dashboard for small businesses.',
-    status: 'Live',
-    stack: ['React 19', 'Express 5', 'MySQL'],
-    href: 'https://www.stockpilot.space',
+    name: 'MutualLink',
+    tagline: 'Loans, savings, and collections for a multi-purpose cooperative',
+    status: 'Building',
+    stack: ['PHP 8.2', 'MySQL 8.4', 'Chart.js'],
+    href: work('mutuallink/'),
+    image: work('mutuallink.webp'),
+    video: work('mutuallink.mp4'),
+  },
+  {
+    name: 'Concordance',
+    tagline: 'A local-first memory vault that answers from what you saved',
+    status: 'Shipped',
+    stack: ['Node 22', 'SQLite FTS', 'Chrome MV3'],
+    href: work('concordance/'),
+    image: work('concordance.webp'),
+    video: work('concordance.mp4'),
+  },
+  {
+    name: 'ClaudeBar',
+    tagline: 'Always-on Claude Code usage dock for Windows',
+    status: 'Building',
+    stack: ['Electron', 'WebGL2'],
+    href: work('claude-remainder/'),
+    image: work('claudebar.webp'),
+    video: work('claudebar.mp4'),
+  },
+  {
+    name: 'Cashi',
+    tagline: 'GCash float tracker for rural operators',
+    status: 'Building',
+    stack: ['Flutter', 'Dart'],
+    href: work('cashi/'),
+    image: work('cashi.webp'),
+    video: work('cashi.mp4'),
   },
   {
     name: 'CERPSYS',
-    blurb: 'Production ERP for a multi-branch rental enterprise.',
-    status: 'In production',
-    stack: ['Next.js', 'PostgreSQL'],
-    href: 'https://sitsit.dev/work/cerpsys/',
+    tagline: 'Modular cloud ERP for Philippine small businesses',
+    status: 'Maintained',
+    stack: ['C#', 'ASP.NET Core', 'MySQL'],
+    href: work('cerpsys/'),
   },
   {
-    name: 'FloatWatch',
-    blurb: 'GCash float tracker with on-device receipt OCR.',
+    name: 'Beat Engine',
+    tagline: 'Engine that turns music into interactive, follow-along video',
     status: 'Building',
-    stack: ['Flutter', 'ML Kit'],
-    href: 'https://github.com/JamS1t/floatwatch',
+    stack: ['Godot 4.5', 'GDScript', 'Python'],
+    href: work('beat-engine/'),
   },
 ]
 
 export const highlights = [
   { value: '2+ yrs', label: 'In production' },
-  { value: '3', label: 'Live products' },
+  { value: '7', label: 'Projects' },
   { value: 'UTC+8', label: 'Timezone' },
 ]
