@@ -3,7 +3,37 @@
 
 export const SITE = 'https://sitsit.dev'
 // Override for local dev (e.g. http://localhost:3000/api/chat/ with CHAT_CORS_ORIGINS set there).
-export const CHAT_API: string = import.meta.env.VITE_CHAT_API || `${SITE}/api/chat/`
+// Otherwise try the apex, then www: if Vercel redirects one to the other, the browser won't follow
+// a redirect on a CORS preflight, so the request has to go straight to the host that answers.
+const CHAT_APIS: string[] = import.meta.env.VITE_CHAT_API
+  ? [import.meta.env.VITE_CHAT_API]
+  : [`${SITE}/api/chat/`, 'https://www.sitsit.dev/api/chat/']
+let working = 0
+
+/** POSTs to the chat API. Moves on to the next host only when the request never got a response
+ *  (network or CORS failure), so the server can't have run it twice. Remembers the host that worked. */
+export async function postChat(body: string, signal: AbortSignal): Promise<Response> {
+  let lastError: unknown
+  for (let n = 0; n < CHAT_APIS.length; n++) {
+    const i = (working + n) % CHAT_APIS.length
+    try {
+      const res = await fetch(CHAT_APIS[i], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        signal,
+        credentials: 'omit',
+      })
+      working = i
+      return res
+    } catch (e) {
+      if (signal.aborted) throw e
+      console.warn(`chat: ${CHAT_APIS[i]} unreachable`, e)
+      lastError = e
+    }
+  }
+  throw lastError
+}
 export const OPEN_EVENT = 'chat:open'
 
 /** Opens the chat panel from anywhere on the page. */

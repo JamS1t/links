@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MessageCircle, X } from 'lucide-react'
-import { CHAT_API, OPEN_EVENT, SITE, splitLinks, splitSSE, type StreamEvent } from '@/lib/chat'
+import { OPEN_EVENT, postChat, SITE, splitLinks, splitSSE, type StreamEvent } from '@/lib/chat'
 
 // Same assistant as the sitsit.dev chat widget, restyled only where this page differs.
 
@@ -13,6 +13,8 @@ const GREETING =
 const STARTERS = ['What do you build?', 'Are you available?', 'I have a project']
 const OFFLINE = 'The assistant is offline right now. Please use the contact form.'
 const LOST = 'Connection lost. Try again.'
+// Distinct from OFFLINE (the server's own 503), so the two failures can be told apart.
+const UNREACHABLE = "Couldn't reach the assistant. Check your connection and try again, or use the contact form."
 const MINI_KEY = 'chat:minimized'
 const LAUNCHER_SHADOW = 'shadow-[0_1px_2px_rgb(9_9_11/0.04),0_16px_40px_-20px_rgb(9_9_11/0.45)]'
 const PANEL_SHADOW = 'sm:shadow-[0_1px_2px_rgb(9_9_11/0.04),0_16px_40px_-20px_rgb(9_9_11/0.12)]'
@@ -143,13 +145,7 @@ export function ChatWidget() {
     let finished = false
     let reply = ''
     try {
-      const res = await fetch(CHAT_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, leadSent }),
-        signal: ac.signal,
-        credentials: 'omit',
-      })
+      const res = await postChat(JSON.stringify({ messages: history, leadSent }), ac.signal)
       if (!res.ok || !res.body) {
         const err = (await res.json().catch(() => null)) as { error?: string } | null
         setMessages(before)
@@ -191,7 +187,7 @@ export function ChatWidget() {
         // A network or CORS failure never reached the assistant: restore the message like an error reply.
         setMessages(before)
         setInput(content)
-        setNotice({ text: OFFLINE, form: true })
+        setNotice({ text: UNREACHABLE, form: true })
       }
     } finally {
       abortRef.current = null

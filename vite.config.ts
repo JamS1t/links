@@ -6,13 +6,14 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 // GitHub Pages can't send response headers, so the production build carries its CSP as a meta tag.
 // Build only: the dev server injects inline scripts for HMR. Keep connect-src in step with src/lib/chat.ts.
 function csp(chatApi: string | undefined): Plugin {
-  const connect = ["'self'", 'https://sitsit.dev', ...(chatApi ? [new URL(chatApi).origin] : [])]
+  const site = 'https://sitsit.dev https://www.sitsit.dev' // either may redirect to the other on Vercel
+  const connect = ["'self'", site, ...(chatApi ? [new URL(chatApi).origin] : [])]
   const policy = [
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self' 'unsafe-inline'", // sonner injects its stylesheet at runtime
-    "img-src 'self' data: blob: https://sitsit.dev", // project posters
-    "media-src 'self' https://sitsit.dev", // project reels
+    `img-src 'self' data: blob: ${site}`, // project posters
+    `media-src 'self' ${site}`, // project reels
     "font-src 'self' data:",
     `connect-src ${[...new Set(connect)].join(' ')}`,
     "object-src 'none'",
