@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { ArrowUpRight, CalendarDays, Check, ChevronRight, Copy, Globe, Mail, MapPin, MessageCircle, Share2, UserPlus } from 'lucide-react'
-import { toast } from 'sonner'
-import { Toaster } from '@/components/ui/sonner'
+import { Toaster } from '@/components/toast'
+import { toast } from '@/lib/toast'
 import { AsciiPortrait } from '@/components/ascii-portrait'
 import { BrandIcon } from '@/components/brand-icons'
 import { ChatWidget } from '@/components/chat-widget'
@@ -54,7 +54,7 @@ export default function App() {
         </main>
       </div>
       <ChatWidget />
-      <Toaster theme="light" position="top-center" />
+      <Toaster />
     </>
   )
 }
@@ -69,7 +69,7 @@ function Cover() {
       aria-hidden
       className="pointer-events-none fixed inset-x-0 top-0 -z-10 mx-auto h-[min(54svh,470px)] w-full max-w-lg overflow-hidden [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)]"
     >
-      <AsciiPortrait src="/cover.jpg" ink="dark" intensity={1.25} alive focus={FACE} className="cover-ascii absolute inset-0 size-full" />
+      <AsciiPortrait src="/cover-ascii.jpg" ink="dark" intensity={1.25} alive focus={FACE} className="cover-ascii absolute inset-0 size-full" />
     </div>
   )
 }
@@ -87,7 +87,7 @@ function TopBar() {
 
   return (
     <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 pt-[max(1rem,env(safe-area-inset-top))]">
-      <a href={profile.site} className="rounded-full bg-canvas/85 px-3 py-1.5 text-[15px] font-semibold tracking-tight text-fg backdrop-blur transition-colors hover:text-accent">
+      <a href={profile.site} className="rounded-full bg-canvas/90 px-3 py-1.5 text-[15px] font-semibold tracking-tight text-fg transition-colors hover:text-accent">
         sitsit.dev
       </a>
       <button type="button" onClick={share} aria-label="Share this page" className="btn btn-secondary size-11 !p-0">
@@ -192,10 +192,10 @@ function LinkRow({ href, icon, label, sub }: { href: string; icon: ReactNode; la
 async function copy(text: string, message: string) {
   try {
     await navigator.clipboard.writeText(text)
-    toast.success(message)
+    toast(message)
     return true
   } catch {
-    toast.error("Couldn't copy. Long-press the address instead.")
+    toast("Couldn't copy. Long-press the address instead.", { error: true })
     return false
   }
 }

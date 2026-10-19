@@ -18,7 +18,8 @@ export const socials: { id: Social; label: string; handle: string; href: string 
   { id: 'instagram', label: 'Instagram', handle: '@jamescarlsitsit', href: 'https://www.instagram.com/jamescarlsitsit/' },
 ]
 
-// Mirrors src/data/projects.ts on sitsit.dev (same order, names, taglines, statuses). Media is served from sitsit.dev.
+// Mirrors src/data/projects.ts on sitsit.dev (same order, names, taglines, statuses).
+// Reels and posters are phone-sized copies in public/work/ (800px, 30fps H.264; see README), not sitsit.dev's 1600px masters.
 export type Project = {
   name: string
   tagline: string
@@ -30,6 +31,7 @@ export type Project = {
 }
 
 const work = (slug: string) => `https://sitsit.dev/work/${slug}`
+const media = (file: string) => `/work/${file}`
 
 export const projects: Project[] = [
   {
@@ -38,8 +40,8 @@ export const projects: Project[] = [
     status: 'Live',
     stack: ['React', 'Express', 'Gemini'],
     href: work('algolens/'),
-    image: work('algolens.webp'),
-    video: work('algolens.mp4'),
+    image: media('algolens.webp'),
+    video: media('algolens.mp4'),
   },
   {
     name: 'MutualLink',
@@ -47,8 +49,8 @@ export const projects: Project[] = [
     status: 'Building',
     stack: ['PHP 8.2', 'MySQL 8.4', 'Chart.js'],
     href: work('mutuallink/'),
-    image: work('mutuallink.webp'),
-    video: work('mutuallink.mp4'),
+    image: media('mutuallink.webp'),
+    video: media('mutuallink.mp4'),
   },
   {
     name: 'Concordance',
@@ -56,8 +58,8 @@ export const projects: Project[] = [
     status: 'Shipped',
     stack: ['Node 22', 'SQLite FTS', 'Chrome MV3'],
     href: work('concordance/'),
-    image: work('concordance.webp'),
-    video: work('concordance.mp4'),
+    image: media('concordance.webp'),
+    video: media('concordance.mp4'),
   },
   {
     name: 'ClaudeBar',
@@ -65,8 +67,8 @@ export const projects: Project[] = [
     status: 'Building',
     stack: ['Electron', 'WebGL2'],
     href: work('claude-remainder/'),
-    image: work('claudebar.webp'),
-    video: work('claudebar.mp4'),
+    image: media('claudebar.webp'),
+    video: media('claudebar.mp4'),
   },
   {
     name: 'Cashi',
@@ -74,8 +76,8 @@ export const projects: Project[] = [
     status: 'Building',
     stack: ['Flutter', 'Dart'],
     href: work('cashi/'),
-    image: work('cashi.webp'),
-    video: work('cashi.mp4'),
+    image: media('cashi.webp'),
+    video: media('cashi.mp4'),
   },
   {
     name: 'CERPSYS',
