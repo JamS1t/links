@@ -11,7 +11,8 @@ function csp(chatApi: string | undefined): Plugin {
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self' 'unsafe-inline'", // sonner injects its stylesheet at runtime
-    "img-src 'self' data: blob:",
+    "img-src 'self' data: blob: https://sitsit.dev", // project posters
+    "media-src 'self' https://sitsit.dev", // project reels
     "font-src 'self' data:",
     `connect-src ${[...new Set(connect)].join(' ')}`,
     "object-src 'none'",
