@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react'
 
 const RAMP = ' .:-=+*#%@' // dark → bright
 
-// Draws `src` as ASCII art (object-fit: cover, top-anchored, same framing as the cover <img>).
-// Rendered once per size; CSS (.cover-ascii) fades it in on scroll.
+// Draws `src` as ASCII art (object-fit: cover, top-anchored). Rendered once per size.
+// ink 'dark' draws zinc characters for a white page (dense = dark); 'light' draws pale characters for a dark ground (dense = bright).
 // fontSize/maxDpr/intensity default to the site's values; the print card passes a smaller font, full DPR, stronger ink.
 export function AsciiPortrait({
   src,
@@ -11,12 +11,14 @@ export function AsciiPortrait({
   fontSize,
   maxDpr = 2,
   intensity = 1,
+  ink = 'light',
 }: {
   src: string
   className?: string
   fontSize?: number
   maxDpr?: number
   intensity?: number
+  ink?: 'light' | 'dark'
 }) {
   const ref = useRef<HTMLCanvasElement>(null)
 
@@ -59,10 +61,11 @@ export function AsciiPortrait({
       ctx.textBaseline = 'top'
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
-          const t = tone[y * cols + x]
-          if (t < 0.08) continue // deepest shadows stay empty
+          const t = ink === 'dark' ? 1 - tone[y * cols + x] : tone[y * cols + x]
+          if (t < 0.08) continue // empty where the ink would be faintest
           const ch = RAMP[Math.min(RAMP.length - 1, Math.ceil(t * (RAMP.length - 1)))]
-          ctx.fillStyle = `rgb(214 218 226 / ${Math.min(1, (0.12 + t * 0.43) * intensity)})` // capped so text and glass on top stay legible
+          const alpha = Math.min(1, (0.12 + t * 0.43) * intensity) // capped so text on top stays legible
+          ctx.fillStyle = ink === 'dark' ? `rgb(39 39 42 / ${alpha})` : `rgb(214 218 226 / ${alpha})`
           ctx.fillText(ch, x * cellW, y * cellH)
         }
       }
@@ -80,7 +83,7 @@ export function AsciiPortrait({
       ro.disconnect()
       cancelAnimationFrame(raf)
     }
-  }, [src, fontSize, maxDpr, intensity])
+  }, [src, fontSize, maxDpr, intensity, ink])
 
   return <canvas ref={ref} aria-hidden className={className} />
 }
