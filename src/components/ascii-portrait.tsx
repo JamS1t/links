@@ -3,12 +3,31 @@ import { useEffect, useRef } from 'react'
 const RAMP = ' .:-=+*#%@' // dark → bright
 
 const INDIGO = [59, 79, 216]
+const LEVELS = RAMP.length - 1 // drawable levels 1..9 (0 is a space)
+const GLOW_STEPS = 4
 
-// Draws `src` as ASCII art (object-fit: cover, top-anchored).
+type Grid = {
+  width: number
+  height: number
+  dpr: number
+  cols: number
+  rows: number
+  cellW: number
+  cellH: number
+  font: number
+  tone: Float32Array
+  seed: Float32Array
+}
+
+// Draws `src` as ASCII art (object-fit: cover, top-anchored, or zoomed onto `focus`).
 // ink 'dark' draws zinc characters for a white page (dense = dark); 'light' draws pale characters for a dark ground (dense = bright).
-// alive: the portrait types itself in on load, shimmers slowly, and an indigo spotlight follows the pointer
-// (or wanders over the face until someone touches the page). Off under reduced motion, and paused while off screen.
 // fontSize/maxDpr/intensity default to the site's values; the print card passes a smaller font, full DPR, stronger ink.
+//
+// alive: the portrait types itself in on load, a few characters twinkle, and an indigo spotlight follows the pointer
+// (or drifts over the face until someone touches the page). Off under reduced motion; paused while hidden or scrolled away.
+// Built for phones: every glyph style is pre-drawn once into an atlas, the settled portrait is cached as a bitmap, and each
+// frame blits that bitmap, redraws the few twinkling cells, and composites the spotlight from a pre-rendered
+// indigo copy (a handful of calls, no fillText). Drops to 15fps if frames run long.
 export function AsciiPortrait({
   src,
   className,
@@ -33,19 +52,34 @@ export function AsciiPortrait({
 
   useEffect(() => {
     const canvas = ref.current!
+    const ctx = canvas.getContext('2d')!
     const img = new Image()
+    img.decoding = 'async'
     const animate = alive && !matchMedia('(prefers-reduced-motion: reduce)').matches
+    const inkRGB = ink === 'dark' ? [39, 39, 42] : [214, 218, 226]
     let raf = 0
-    let grid: { width: number; height: number; cols: number; rows: number; cellW: number; cellH: number; font: number; tone: Float32Array; seed: Float32Array } | null = null
+    let grid: Grid | null = null
+    let atlas: HTMLCanvasElement | null = null
+    let base: HTMLCanvasElement | null = null
+    let hot: HTMLCanvasElement | null = null // the whole portrait as the spotlight sees it: denser, indigo
+    let scratch: HTMLCanvasElement | null = null // spotlight disc, composed each frame
+    let gw = 0
+    let gh = 0
     let start = 0
     let last = 0
+    let frameMs = 1000 / 24
+    let cost = 0
     const spot = { x: 0, y: 0, tx: 0, ty: 0, at: -1e9 }
+    const pointer = { x: 0, y: 0, fresh: false }
+
+    const levelOf = (t: number) => (t < 0.08 ? 0 : Math.min(LEVELS, Math.ceil(Math.min(1, t) * LEVELS)))
 
     function layout() {
       const { width, height } = canvas.getBoundingClientRect()
       if (!width || !height || !img.naturalWidth) return false
 
-      const dpr = Math.min(devicePixelRatio || 1, maxDpr) * 1.2 // headroom for the scroll zoom
+      // The static render keeps 20% headroom for the CSS scroll zoom; the live one skips it to save fill rate.
+      const dpr = Math.min(devicePixelRatio || 1, maxDpr) * (animate ? 1 : 1.2)
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
 
@@ -53,7 +87,7 @@ export function AsciiPortrait({
       const cols = Math.floor(width / (font * 0.62))
       const rows = Math.floor(height / font)
 
-      // Let the browser average each cell by downscaling the cover-cropped photo to cols × rows.
+      // Let the browser average each cell by downscaling the cropped photo to cols × rows.
       const iw = img.naturalWidth
       const ih = img.naturalHeight
       const scale = Math.max(width / iw, height / ih) * (focus?.zoom ?? 1)
@@ -71,74 +105,177 @@ export function AsciiPortrait({
       if (ink === 'dark') for (let i = 0; i < tone.length; i++) tone[i] = 1 - tone[i]
       const seed = new Float32Array(cols * rows).map(() => Math.random())
 
-      const ctx = canvas.getContext('2d')!
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      grid = { width, height, cols, rows, cellW: width / cols, cellH: height / rows, font, tone, seed }
+      grid = { width, height, dpr, cols, rows, cellW: width / cols, cellH: height / rows, font, tone, seed }
+      if (animate) buildSprites(grid)
       return true
     }
 
-    function paint(now: number) {
-      if (!grid) return
-      const { width, height, cols, rows, cellW, cellH, font, tone, seed } = grid
-      const ctx = canvas.getContext('2d')!
-      ctx.clearRect(0, 0, width, height)
-      ctx.font = `600 ${font}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`
-      ctx.textBaseline = 'top'
-
-      const t0 = (now - start) / 1000
-      const radius = Math.min(width, height) * 0.3
-      if (animate) {
-        // No recent pointer: drift slowly around the face.
-        if (now - spot.at > 2500) {
-          spot.tx = width * (0.5 + 0.22 * Math.sin(t0 * 0.35))
-          spot.ty = height * (0.4 + 0.14 * Math.sin(t0 * 0.53 + 1))
+    // Atlas: one glyph per (level, glow step), in device pixels. Base: the settled portrait, drawn once from the atlas.
+    function buildSprites(g: Grid) {
+      gw = Math.ceil(g.cellW * g.dpr) + 2
+      gh = Math.ceil(g.cellH * g.dpr) + 2
+      atlas = document.createElement('canvas')
+      atlas.width = gw * LEVELS
+      atlas.height = gh * (GLOW_STEPS + 1)
+      const a = atlas.getContext('2d')!
+      a.font = `600 ${g.font * g.dpr}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`
+      a.textBaseline = 'top'
+      for (let s = 0; s <= GLOW_STEPS; s++) {
+        const glow = s / GLOW_STEPS
+        const k = Math.min(1, glow * 2.2)
+        const [r, gr, b] = inkRGB.map((c, i) => Math.round(c + (INDIGO[i] - c) * k))
+        for (let l = 1; l <= LEVELS; l++) {
+          const alpha = Math.min(1, (0.12 + (l / LEVELS) * 0.43) * intensity + glow * 0.5)
+          a.fillStyle = `rgb(${r} ${gr} ${b} / ${alpha})`
+          a.fillText(RAMP[l], (l - 1) * gw + 1, s * gh + 1)
         }
-        spot.x += (spot.tx - spot.x) * 0.12
-        spot.y += (spot.ty - spot.y) * 0.12
       }
+      const sheet = (boost: number, step: number) => {
+        const c = document.createElement('canvas')
+        c.width = canvas.width
+        c.height = canvas.height
+        const cx = c.getContext('2d')!
+        cx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0)
+        for (let y = 0; y < g.rows; y++)
+          for (let x = 0; x < g.cols; x++) stamp(cx, g, levelOf(g.tone[y * g.cols + x] + boost), step, x, y)
+        return c
+      }
+      base = sheet(0, 0)
+      scratch = document.createElement('canvas')
+      // The spotlight copy isn't needed until the type-in ends: build it when the main thread is free.
+      hot = null
+      const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 200))
+      idle(() => {
+        if (grid === g) hot = sheet(0.45, GLOW_STEPS)
+      })
+    }
 
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          const i = y * cols + x
-          let t = tone[i]
-          let glow = 0
-          if (animate) {
-            // Type-in: each cell appears on a top-down wave, scrambling briefly before it settles.
-            const age = t0 - ((y / rows) * 0.9 + seed[i] * 0.35)
-            if (age < 0) continue
-            if (age < 0.18) t = seed[(i * 7) % seed.length]
-            t += 0.07 * Math.sin(t0 * 1.6 + seed[i] * 6.283) // slow shimmer
-            const dx = x * cellW - spot.x
-            const dy = y * cellH - spot.y
-            const d = Math.sqrt(dx * dx + dy * dy)
-            if (d < radius) {
-              glow = 1 - d / radius
-              glow *= glow
-              t += glow * 0.45
-            }
-          }
+    function stamp(c: CanvasRenderingContext2D, g: Grid, level: number, step: number, x: number, y: number) {
+      if (level) c.drawImage(atlas!, (level - 1) * gw, step * gh, gw, gh, x * g.cellW - 1 / g.dpr, y * g.cellH - 1 / g.dpr, gw / g.dpr, gh / g.dpr)
+    }
+
+    // Exact original look, one pass: used by the print card and under reduced motion.
+    function paintStatic() {
+      const g = grid!
+      ctx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0)
+      ctx.clearRect(0, 0, g.width, g.height)
+      ctx.font = `600 ${g.font}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`
+      ctx.textBaseline = 'top'
+      for (let y = 0; y < g.rows; y++) {
+        for (let x = 0; x < g.cols; x++) {
+          const t = g.tone[y * g.cols + x]
           if (t < 0.08) continue // empty where the ink would be faintest
-          const ch = RAMP[Math.min(RAMP.length - 1, Math.ceil(Math.min(1, t) * (RAMP.length - 1)))]
-          const alpha = Math.min(1, (0.12 + Math.min(1, t) * 0.43) * intensity + glow * 0.5) // capped so text on top stays legible
-          if (glow > 0.02) {
-            const [r, g, b] = ink === 'dark' ? [39, 39, 42] : [214, 218, 226]
-            const k = Math.min(1, glow * 2.2)
-            ctx.fillStyle = `rgb(${r + (INDIGO[0] - r) * k} ${g + (INDIGO[1] - g) * k} ${b + (INDIGO[2] - b) * k} / ${alpha})`
-          } else {
-            ctx.fillStyle = ink === 'dark' ? `rgb(39 39 42 / ${alpha})` : `rgb(214 218 226 / ${alpha})`
-          }
-          ctx.fillText(ch, x * cellW, y * cellH)
+          const ch = RAMP[Math.min(RAMP.length - 1, Math.ceil(t * (RAMP.length - 1)))]
+          const alpha = Math.min(1, (0.12 + t * 0.43) * intensity) // capped so text on top stays legible
+          ctx.fillStyle = `rgb(${inkRGB[0]} ${inkRGB[1]} ${inkRGB[2]} / ${alpha})`
+          ctx.fillText(ch, x * g.cellW, y * g.cellH)
         }
       }
     }
 
-    // ~24fps is plenty for a shimmer; skip frames while the page is hidden or the cover is scrolled away.
+    const WAVE = 0.9 // seconds for the type-in wave to cross the portrait
+    const SPREAD = 0.2 // per-cell jitter on that wave
+    const SCRAMBLE = 0.14 // seconds a cell shows random characters before settling
+    const REVEAL = WAVE + SPREAD + SCRAMBLE
+
+    function paintLive(now: number) {
+      const g = grid!
+      const { cols, rows, cellW, cellH, tone, seed, width, height } = g
+      const t0 = (now - start) / 1000
+      ctx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0)
+
+      if (pointer.fresh) {
+        // Read layout once per frame, not per pointer event; undo the CSS scroll zoom so the spotlight lands under the finger.
+        pointer.fresh = false
+        const r = canvas.getBoundingClientRect()
+        const x = pointer.x - r.left
+        const y = pointer.y - r.top
+        if (x >= 0 && y >= 0 && x <= r.width && y <= r.height) {
+          spot.tx = (x * width) / r.width
+          spot.ty = (y * height) / r.height
+          spot.at = now
+        }
+      }
+      if (now - spot.at > 2500) {
+        // No recent pointer: drift slowly around the face.
+        spot.tx = width * (0.5 + 0.22 * Math.sin(t0 * 0.35))
+        spot.ty = height * (0.4 + 0.14 * Math.sin(t0 * 0.53 + 1))
+      }
+      spot.x += (spot.tx - spot.x) * 0.14
+      spot.y += (spot.ty - spot.y) * 0.14
+      const radius = Math.min(width, height) * 0.26
+
+      if (t0 < REVEAL) {
+        // Type-in: cells appear on a top-down wave, scrambling briefly before they settle. Rows that have
+        // fully settled are one blit from the cached portrait; only the moving band is drawn cell by cell.
+        ctx.clearRect(0, 0, width, height)
+        const settledRows = Math.max(0, Math.min(rows, Math.floor(((t0 - SPREAD - SCRAMBLE) / WAVE) * rows)))
+        if (settledRows) ctx.drawImage(base!, 0, 0, base!.width, settledRows * cellH * g.dpr, 0, 0, width, settledRows * cellH)
+        const lastRow = Math.min(rows, Math.ceil((t0 / WAVE) * rows) + 1)
+        for (let y = settledRows; y < lastRow; y++) {
+          for (let x = 0; x < cols; x++) {
+            const i = y * cols + x
+            const age = t0 - ((y / rows) * WAVE + seed[i] * SPREAD)
+            if (age < 0) continue
+            stamp(ctx, g, age < SCRAMBLE ? 1 + Math.floor(seed[(i * 7) % seed.length] * LEVELS) : levelOf(tone[i]), 0, x, y)
+          }
+        }
+        return
+      }
+
+      ctx.clearRect(0, 0, width, height)
+      ctx.drawImage(base!, 0, 0, width, height)
+
+      // Sparse twinkle: a handful of cells step one character up or down for a moment.
+      for (let i = 0; i < tone.length; i++) {
+        if (Math.sin(t0 * 1.3 + seed[i] * 60) <= 0.985) continue
+        const x = i % cols
+        const y = (i - x) / cols
+        ctx.clearRect(x * cellW, y * cellH, cellW, cellH)
+        stamp(ctx, g, levelOf(tone[i] + (seed[i] > 0.5 ? 0.12 : -0.12)), 0, x, y)
+      }
+
+      if (!hot) return
+      // Spotlight, composited instead of redrawn cell by cell: fade the portrait out in a soft disc,
+      // then draw the pre-rendered indigo portrait through the same disc. A few calls per frame.
+      // Snapped to whole device pixels so the glyphs are copied 1:1, never resampled (which blurs them).
+      const d = g.dpr
+      const size = Math.ceil(radius * 2 * d)
+      const px = Math.round((spot.x - radius) * d)
+      const py = Math.round((spot.y - radius) * d)
+      if (scratch!.width !== size) scratch!.width = scratch!.height = size
+      const sc = scratch!.getContext('2d')!
+      const disc = (c: CanvasRenderingContext2D, cx: number, cy: number, r: number) => {
+        const grad = c.createRadialGradient(cx, cy, 0, cx, cy, r)
+        grad.addColorStop(0, 'rgb(0 0 0 / 1)')
+        grad.addColorStop(0.4, 'rgb(0 0 0 / 0.85)')
+        grad.addColorStop(0.75, 'rgb(0 0 0 / 0.3)')
+        grad.addColorStop(1, 'rgb(0 0 0 / 0)')
+        c.fillStyle = grad
+        c.fillRect(cx - r, cy - r, r * 2, r * 2)
+      }
+      sc.globalCompositeOperation = 'source-over'
+      sc.clearRect(0, 0, size, size)
+      disc(sc, size / 2, size / 2, size / 2)
+      sc.globalCompositeOperation = 'source-in'
+      sc.drawImage(hot!, px, py, size, size, 0, 0, size, size)
+      ctx.setTransform(1, 0, 0, 1, 0, 0) // device pixels for the composite
+      ctx.globalCompositeOperation = 'destination-out'
+      disc(ctx, px + size / 2, py + size / 2, size / 2)
+      ctx.globalCompositeOperation = 'source-over'
+      ctx.drawImage(scratch!, px, py)
+    }
+
     function loop(now: number) {
       raf = requestAnimationFrame(loop)
-      if (now - last < 1000 / 24 || document.hidden) return
+      if (now - last < frameMs - 2 || document.hidden) return
       if (grid && scrollY > grid.height * 1.1) return
       last = now
-      paint(now)
+      const t = performance.now()
+      paintLive(now)
+      // Slow device: if frames average over 10ms, settle for 15fps.
+      cost = cost * 0.9 + (performance.now() - t) * 0.1
+      if (cost > 10 && now - start > REVEAL * 1000) frameMs = 1000 / 15
     }
 
     function rebuild() {
@@ -152,20 +289,15 @@ export function AsciiPortrait({
         }
         raf = requestAnimationFrame(loop)
       } else {
-        raf = requestAnimationFrame(() => paint(performance.now()))
+        raf = requestAnimationFrame(paintStatic)
       }
     }
 
     // The canvas sits behind the page (pointer-events: none), so follow the pointer on the window.
     function onPointer(e: PointerEvent) {
-      const r = canvas.getBoundingClientRect()
-      const x = e.clientX - r.left
-      const y = e.clientY - r.top
-      if (x < 0 || y < 0 || x > r.width || y > r.height) return
-      // Undo the CSS scroll zoom so the spotlight lands under the finger.
-      spot.tx = x * (canvas.clientWidth / r.width)
-      spot.ty = y * (canvas.clientHeight / r.height)
-      spot.at = performance.now()
+      pointer.x = e.clientX
+      pointer.y = e.clientY
+      pointer.fresh = true
     }
 
     img.onload = rebuild

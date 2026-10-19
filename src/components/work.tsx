@@ -1,34 +1,71 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import type { Project } from '@/data'
 
 const isLive = (s: Project['status']) => s === 'Live' || s === 'Maintained'
 
-/** sitsit.dev's product window: the reel plays only while mostly on screen, never under reduced motion. */
+// Reels are a nice-to-have: skip them for reduced motion, Save-Data, or a 2G-class connection (the poster stays).
+function reelsAllowed() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+  const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection
+  return !(c?.saveData || /(^|-)2g$/.test(c?.effectiveType ?? ''))
+}
+
+/** sitsit.dev's product window. The poster is a lazy <img>; the video file is only attached once the card is
+ *  mostly on screen, plays only while it stays there (so one reel at a time in the row), and fades in over the
+ *  poster once it is actually playing. Paused while the tab is hidden. */
 function Reel({ project }: { project: Project }) {
   const ref = useRef<HTMLVideoElement>(null)
+  const [playing, setPlaying] = useState(false)
 
   useEffect(() => {
     const video = ref.current
-    if (!video || matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? video.play().catch(() => {}) : video.pause()), { threshold: 0.6 })
+    if (!video || !reelsAllowed()) return
+    let visible = false
+    const sync = () => {
+      if (visible && !document.hidden) {
+        if (!video.src) video.src = project.video!
+        video.play().catch(() => {}) // iOS Low Power Mode refuses autoplay: the poster stays
+      } else if (!video.paused) video.pause()
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        visible = e.isIntersecting
+        sync()
+      },
+      { threshold: 0.6 },
+    )
     io.observe(video)
-    return () => io.disconnect()
-  }, [])
+    document.addEventListener('visibilitychange', sync)
+    return () => {
+      io.disconnect()
+      document.removeEventListener('visibilitychange', sync)
+    }
+  }, [project.video])
 
   return (
     <div className="frame transition-[box-shadow,transform] duration-400 ease-(--ease-out-expo) group-hover:-translate-y-0.5 group-hover:shadow-(--shadow-frame-hover)">
       <div className="frame-inner relative aspect-[16/10]">
+        <img
+          src={project.image}
+          alt={`${project.name}: ${project.tagline}`}
+          width={800}
+          height={500}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 size-full object-cover object-top"
+        />
         <video
           ref={ref}
-          src={project.video}
-          poster={project.image}
           muted
           loop
           playsInline
           preload="none"
-          aria-label={`${project.name}: ${project.tagline}`}
-          className="absolute inset-0 size-full object-cover object-top"
+          disablePictureInPicture
+          disableRemotePlayback
+          aria-hidden
+          onPlaying={() => setPlaying(true)}
+          className={`absolute inset-0 size-full object-cover object-top transition-opacity duration-300 ${playing ? 'opacity-100' : 'opacity-0'}`}
         />
       </div>
     </div>
@@ -42,7 +79,7 @@ export function Work({ projects }: { projects: Project[] }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <ul className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 pt-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ul className="-mx-5 flex snap-x overscroll-x-contain snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 pt-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {withMedia.map((p) => (
           <li key={p.name} className="w-[84%] shrink-0 snap-start sm:w-[78%]">
             <a href={p.href} target="_blank" rel="noopener" className="group flex flex-col gap-3">

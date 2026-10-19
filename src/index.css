@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
 /* Same system as sitsit.dev (see DESIGN.md there): white ground, zinc neutrals, one indigo accent, Geist. */
@@ -229,7 +227,6 @@
     from {
         opacity: 0;
         transform: translateY(12px);
-        filter: blur(6px);
     }
 }
 
@@ -243,6 +240,18 @@
     }
 }
 
+/* Transform + opacity only, so these stay on the compositor even on low-end phones. */
+.toast-in {
+    animation: toast-in 0.25s var(--ease-out-expo) both;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}
+
 @keyframes cover-zoom {
     to {
         transform: scale(1.12);
@@ -252,6 +261,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .enter,
+    .toast-in,
     .chat-panel {
         animation: none;
     }
