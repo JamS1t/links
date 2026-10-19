@@ -1,34 +1,34 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/schibsted-grotesk";
+@import "@fontsource-variable/geist";
 
-@custom-variant dark (&:is(.dark *));
+/* Same system as sitsit.dev (see DESIGN.md there): white ground, zinc neutrals, one indigo accent, Geist. */
+@theme {
+    --color-canvas: #ffffff;
+    --color-subtle: #fafafa;
+    --color-muted: #f4f4f5;
+    --color-line: #e4e4e7;
+    --color-line-strong: #d4d4d8;
+    --color-fg: #09090b;
+    --color-fg-2: #3f3f46;
+    --color-fg-3: #52525b;
+    --color-fg-4: #71717a;
+    --color-accent: #3b4fd8;
+    --color-accent-hover: #2f40b8;
+    --color-accent-soft: #eef0fd;
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
 
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: "Schibsted Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
+    --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
     --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
     --color-secondary-foreground: var(--secondary-foreground);
     --color-secondary: var(--secondary);
     --color-primary-foreground: var(--primary-foreground);
@@ -43,245 +43,202 @@
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* shadcn tokens (toaster), mapped onto the palette above. */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-    --background: #0a0a0b;
-    --foreground: #f5f5f5;
-    --card: #161618;
-    --card-foreground: #f5f5f5;
-    --popover: #161618;
-    --popover-foreground: #f5f5f5;
-    --primary: #f5f5f7;
-    --primary-foreground: #0a0a0b;
-    --secondary: #262626;
-    --secondary-foreground: #f5f5f5;
-    --muted: #262626;
-    --muted-foreground: #a3a3a3;
-    --accent: #262626;
-    --accent-foreground: #f5f5f5;
-    --destructive: #ff6961;
-    --border: rgb(255 255 255 / 0.09);
-    --input: rgb(255 255 255 / 0.12);
-    --ring: #c9ccd3;
+    --background: #ffffff;
+    --foreground: #09090b;
+    --card: #ffffff;
+    --card-foreground: #09090b;
+    --popover: #ffffff;
+    --popover-foreground: #09090b;
+    --primary: #09090b;
+    --primary-foreground: #ffffff;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #09090b;
+    --muted-foreground: #71717a;
+    --accent-foreground: #09090b;
+    --destructive: #b91c1c;
+    --border: #e4e4e7;
+    --input: #d4d4d8;
+    --ring: #3b4fd8;
     --radius: 0.5rem;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border;
     }
-  body {
-    @apply bg-background text-foreground;
+    html {
+        color-scheme: light;
+        -webkit-tap-highlight-color: transparent;
+        scrollbar-color: var(--color-line-strong) var(--color-canvas);
     }
-  button:not(:disabled), [role="button"]:not(:disabled) {
-    cursor: pointer;
+    body {
+        font-family: var(--font-sans);
+        background-color: var(--color-canvas);
+        color: var(--color-fg);
+        caret-color: var(--color-accent);
+        font-feature-settings: "ss01", "cv11";
+        -webkit-font-smoothing: antialiased;
     }
-  html {
-    @apply font-sans;
+    h1, h2, h3 {
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        text-wrap: balance;
     }
-}
-
-html {
-    color-scheme: dark;
-    -webkit-tap-highlight-color: transparent;
+    p {
+        text-wrap: pretty;
+    }
+    ::selection {
+        background-color: var(--color-accent-soft);
+        color: var(--color-fg);
+    }
+    button:not(:disabled), [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+    /* A field's own focus style (focus:outline-none + accent border) wins over this. */
+    :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 3px;
+        border-radius: 6px;
+    }
 }
 
 @layer components {
-/* Liquid Glass (web approximation). Layers, bottom to top:
-   refract (displaced + blurred backdrop) → tint → content → sheen (::after) → rim (::before). */
-.glass {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    border-radius: 26px;
-    box-shadow:
-        0 1px 1px rgb(0 0 0 / 0.12),
-        0 16px 40px -16px rgb(0 0 0 / 0.55);
-}
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        height: 2.75rem;
+        padding: 0 1.25rem;
+        border-radius: 9999px;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        transition: background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+    }
+    .btn svg {
+        width: 1.05rem;
+        height: 1.05rem;
+    }
+    .btn-lg {
+        height: 3.25rem;
+        font-size: 1rem;
+    }
+    .btn-sm {
+        height: 2.25rem;
+        padding: 0 0.95rem;
+        font-size: 0.875rem;
+    }
+    .btn-primary {
+        background: var(--color-fg);
+        color: var(--color-canvas);
+    }
+    .btn-primary:hover {
+        background: #27272a;
+    }
+    .btn-secondary {
+        background: var(--color-canvas);
+        color: var(--color-fg);
+        box-shadow: inset 0 0 0 1px var(--color-line-strong), 0 1px 2px rgb(9 9 11 / 0.04);
+    }
+    .btn-secondary:hover {
+        background: var(--color-subtle);
+        box-shadow: inset 0 0 0 1px #a1a1aa, 0 1px 2px rgb(9 9 11 / 0.04);
+    }
+    .btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
 
-.glass-refract {
-    position: absolute;
-    inset: -24px; /* bleed so displaced edges stay covered */
-    z-index: -2;
-    -webkit-backdrop-filter: blur(16px) saturate(185%) brightness(1.08);
-    backdrop-filter: blur(16px) saturate(185%) brightness(1.08);
-}
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        height: 1.625rem;
+        padding: 0 0.6rem;
+        border-radius: 6px;
+        background: var(--color-muted);
+        color: var(--color-fg-2);
+        font-size: 0.8125rem;
+        font-weight: 450;
+    }
 
-/* Safari can't displace a backdrop without dropping the blur; it keeps blur only. */
-@supports not (hanging-punctuation: first) {
-    .glass-refract {
-        filter: url(#glass-distortion);
+    /* Project status: a plain word. Live reads in ink, the rest in grey. */
+    .status {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        line-height: 1;
+        color: var(--color-fg-4);
+        white-space: nowrap;
+    }
+    .status.is-live {
+        color: var(--color-fg);
+    }
+
+    /* Hairline panel: lists and stats sit on white over the ASCII background. */
+    .panel {
+        border: 1px solid var(--color-line);
+        border-radius: 16px;
+        background: var(--color-canvas);
+        overflow: hidden;
+    }
+
+    .chat-panel {
+        animation: chat-rise 0.22s var(--ease-out-expo) both;
+    }
+    @keyframes chat-rise {
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
     }
 }
 
-.glass-tint {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background:
-        linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.03) 45%, rgb(255 255 255 / 0.06)),
-        rgb(12 12 14 / 0.42);
-}
-
-.glass::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    padding: 1px;
-    border-radius: inherit;
-    pointer-events: none;
-    background: linear-gradient(
-        160deg,
-        rgb(255 255 255 / 0.55),
-        rgb(255 255 255 / 0.08) 30%,
-        rgb(255 255 255 / 0.02) 65%,
-        rgb(255 255 255 / 0.3)
-    );
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-}
-
-.glass::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    pointer-events: none;
-    background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 0.14), transparent 70%);
-    opacity: 0;
-    transition: opacity 300ms ease;
-}
-
-@media (hover: hover) {
-    .glass:hover::after {
-        opacity: 1;
-    }
-}
-
-.glass:active::after {
-    opacity: 1;
-}
-}
-
-/* Scroll-driven cover (native CSS, no JS). Unsupported browsers / reduced motion keep the pinned photo only.
-   Only transform + opacity animate, so it stays on the compositor. */
-.cover-ascii,
-.page-end-glow {
-    opacity: 0;
-}
-
-.cover-photo,
+/* Pinned ASCII portrait: always ASCII. On scroll it only zooms a little and fades back
+   so the white sheet scrolling over it stays calm. Transform + opacity only. */
 .cover-ascii {
-    transform-origin: 50% 55%; /* zoom toward the face */
+    transform-origin: 50% 55%;
 }
 
-/* Silver light rising from the bottom edge near the end of the page. */
-.page-end-glow {
-    background:
-        radial-gradient(120% 75% at 50% 115%, rgb(201 204 211 / 0.38), rgb(93 98 112 / 0.18) 45%, transparent 72%),
-        linear-gradient(to top, rgb(141 147 158 / 0.14), transparent 60%);
+.enter {
+    animation: enter 0.9s var(--ease-out-expo) both;
+}
+
+@keyframes enter {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+        filter: blur(6px);
+    }
 }
 
 @supports (animation-timeline: scroll()) {
     @media (prefers-reduced-motion: no-preference) {
-        .cover-photo {
+        .cover-ascii {
             animation: cover-zoom linear both;
             animation-timeline: scroll(root);
             animation-range: 0 90svh;
-        }
-
-        /* Photo → ASCII crossfade while zooming. */
-        .cover-photo-fade {
-            animation: fade-out linear both;
-            animation-timeline: scroll(root);
-            animation-range: 8svh 45svh;
-        }
-
-        .cover-ascii {
-            animation: cover-zoom linear both, fade-in linear both;
-            animation-timeline: scroll(root);
-            animation-range: 0 90svh, 8svh 45svh;
-        }
-
-        .cover-dim {
-            animation: cover-dim linear both;
-            animation-timeline: scroll(root);
-            animation-range: 0 55svh;
-        }
-
-        .cover-title {
-            animation: cover-title linear both;
-            animation-timeline: scroll(root);
-            animation-range: 0 40svh;
-        }
-
-        .page-end-glow {
-            animation: fade-in linear both;
-            animation-timeline: scroll(root);
-            animation-range: 55% 100%;
         }
     }
 }
 
 @keyframes cover-zoom {
-    to { transform: scale(1.15); }
+    to {
+        transform: scale(1.12);
+        opacity: 0.55;
+    }
 }
 
-@keyframes cover-dim {
-    to { opacity: 0.6; }
-}
-
-@keyframes cover-title {
-    to { opacity: 0; transform: translateY(-32px); }
-}
-
-@keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fade-out {
-    to { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+    .enter,
+    .chat-panel {
+        animation: none;
+    }
+    .btn {
+        transition: none;
+    }
 }
