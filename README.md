@@ -27,6 +27,8 @@ The production build adds a Content-Security-Policy meta tag (`vite.config.ts`),
   ```
 
   Posters are the sitsit.dev `.webp` resized to 800px at quality 72.
-- **ASCII cover** samples `public/cover-ascii.jpg` (grayscale, 400px; the sampler only needs luminance). The live
+- **ASCII cover** samples `public/cover-ascii.jpg` (grayscale, 400px; the sampler only needs luminance), with the
+  background cut out to flat white so the head reads as a clean silhouette; `public/cover.jpg` (the print card) is the
+  same crop in colour. The live
   version pre-renders glyphs into an atlas and caches the portrait, so a frame is a blit plus a few twinkling cells and a
   composited spotlight. It runs at 24fps, drops to 15fps on slow devices, and pauses while hidden or scrolled away.
