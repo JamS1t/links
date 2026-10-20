@@ -30,5 +30,4 @@ The production build adds a Content-Security-Policy meta tag (`vite.config.ts`),
 - **ASCII cover** samples `public/cover-ascii.jpg` (grayscale, 400px; the sampler only needs luminance), with the
   background cut out to flat white so the head reads as a clean silhouette; `public/cover.jpg` (the print card) is the
   same crop in colour. The live
-  version pre-renders glyphs into an atlas and caches the portrait, so a frame is a blit plus a few twinkling cells. Every few seconds the eyes blink: the cells in
-  the eye boxes (`EYES` in `src/App.tsx`) are redrawn as eyelid for about 300ms, at full frame rate. It runs at 24fps, drops to 15fps on slow devices, and pauses while hidden or scrolled away.
+  version pre-renders glyphs into an atlas and caches the portrait, so a frame is a blit plus a few twinkling cells. It runs at 24fps, drops to 15fps on slow devices, and pauses while hidden or scrolled away.
