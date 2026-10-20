@@ -15,13 +15,33 @@ type Grid = {
   font: number
   tone: Float32Array
   seed: Float32Array
+  eyes: EyeCells[]
+}
+
+/** An eye box in photo coordinates (0–1), from the top of the upper lid to the bottom of the lower lid. */
+type Eye = { x0: number; y0: number; x1: number; y1: number }
+/** The same box on the character grid, with what the closed lid looks like there. */
+type EyeCells = { c0: number; c1: number; r0: number; r1: number; lid: Float32Array; lash: number }
+
+// A blink, in ms: the lid drops fast, rests a beat, and lifts more slowly (as real blinks do).
+const CLOSE = 90
+const HOLD = 45
+const OPEN = 170
+// How far the lid is down (0 open, 1 shut) t ms into a blink, or -1 once it is over.
+function lidAt(t: number) {
+  if (t < CLOSE) return (t / CLOSE) ** 2 // accelerating down
+  if (t < CLOSE + HOLD) return 1
+  if (t < CLOSE + HOLD + OPEN) return (1 - (t - CLOSE - HOLD) / OPEN) ** 2 // quick off the mark, easing open
+  return -1
 }
 
 // Draws `src` as ASCII art (object-fit: cover, top-anchored, or zoomed onto `focus`).
 // ink 'dark' draws zinc characters for a white page (dense = dark); 'light' draws pale characters for a dark ground (dense = bright).
 // fontSize/maxDpr/intensity default to the site's values; the print card passes a smaller font, full DPR, stronger ink.
 //
-// alive: the portrait types itself in on load and a few characters twinkle. Off under reduced motion; paused while
+// alive: the portrait types itself in on load and a few characters twinkle. With `eyes`, it also blinks now and then
+// (every 2.5–7s, sometimes twice): the eye's characters give way to eyelid from the top down, a dark lash line riding
+// the lid edge, then the lid lifts again. Off under reduced motion; paused while
 // hidden or scrolled away. Built for phones: every glyph is pre-drawn once into an atlas, the settled portrait is cached
 // as a bitmap, and each frame blits that bitmap and redraws the few twinkling cells (no fillText). Drops to 15fps if
 // frames run long.
@@ -34,6 +54,7 @@ export function AsciiPortrait({
   ink = 'light',
   alive = false,
   focus,
+  eyes,
 }: {
   src: string
   className?: string
@@ -44,6 +65,8 @@ export function AsciiPortrait({
   alive?: boolean
   /** Zoom in on a point of the photo: fx/fy are 0–1 in the photo, placed at cx/cy (0–1) of the canvas. */
   focus?: { fx: number; fy: number; cx: number; cy: number; zoom: number }
+  /** Eyes to blink when alive, as boxes in photo coordinates (0–1). Keep the array stable (module-level). */
+  eyes?: Eye[]
 }) {
   const ref = useRef<HTMLCanvasElement>(null)
 
@@ -64,7 +87,11 @@ export function AsciiPortrait({
     let last = 0
     let frameMs = 1000 / 24
     let cost = 0
+    const blink = { at: 0, next: 0, again: false } // at: when the current blink began (0 = none)
 
+    const dark = ink === 'dark' // in tone space, the darker of two photo tones is the larger one for dark ink
+    const darker = (a: number, b: number) => (dark ? Math.max(a, b) : Math.min(a, b))
+    const lighter = (a: number, b: number) => (dark ? Math.min(a, b) : Math.max(a, b))
     const levelOf = (t: number) => (t < 0.08 ? 0 : Math.min(LEVELS, Math.ceil(Math.min(1, t) * LEVELS)))
 
     function layout() {
@@ -98,7 +125,28 @@ export function AsciiPortrait({
       if (ink === 'dark') for (let i = 0; i < tone.length; i++) tone[i] = 1 - tone[i]
       const seed = new Float32Array(cols * rows).map(() => Math.random())
 
-      grid = { width, height, dpr, cols, rows, cellW: width / cols, cellH: height / rows, font, tone, seed }
+      const toCol = (x: number) => ((x * iw - sx) / sw) * cols
+      const toRow = (y: number) => ((y * ih - sy) / sh) * rows
+      const eyeCells = (eyes ?? []).flatMap((e) => {
+        const c0 = Math.max(0, Math.floor(toCol(e.x0)))
+        const c1 = Math.min(cols, Math.ceil(toCol(e.x1)))
+        const r0 = Math.max(0, Math.floor(toRow(e.y0)))
+        const r1 = Math.min(rows, Math.ceil(toRow(e.y1)))
+        if (c1 <= c0 || r1 <= r0) return []
+        // Closed lid = the skin around the eye: per column, the lighter of the cells just above and below it.
+        const lid = new Float32Array(c1 - c0)
+        for (let x = c0; x < c1; x++) {
+          const above = r0 > 0 ? tone[(r0 - 1) * cols + x] : tone[r0 * cols + x]
+          const below = r1 < rows ? tone[r1 * cols + x] : above
+          lid[x - c0] = lighter(above, below)
+        }
+        // Lash line = the darkest ink in the open eye.
+        let lash = tone[r0 * cols + c0]
+        for (let y = r0; y < r1; y++) for (let x = c0; x < c1; x++) lash = darker(lash, tone[y * cols + x])
+        return [{ c0, c1, r0, r1, lid, lash }]
+      })
+
+      grid = { width, height, dpr, cols, rows, cellW: width / cols, cellH: height / rows, font, tone, seed, eyes: eyeCells }
       if (animate) buildSprites(grid)
       return true
     }
@@ -189,11 +237,46 @@ export function AsciiPortrait({
         ctx.clearRect(x * cellW, y * cellH, cellW, cellH)
         stamp(ctx, g, levelOf(tone[i] + (seed[i] > 0.5 ? 0.12 : -0.12)), x, y)
       }
+
+      if (!g.eyes.length) return
+      if (!blink.next) blink.next = now + 1200 + Math.random() * 2000 // first blink soon after the type-in
+      if (!blink.at && now >= blink.next) blink.at = now
+      if (!blink.at) return
+      const p = lidAt(now - blink.at)
+      if (p >= 0) return drawEyes(g, p)
+      blink.at = 0
+      // About one blink in eight comes as a quick double; otherwise rest 2.5–7s.
+      blink.again = !blink.again && Math.random() < 0.12
+      blink.next = now + (blink.again ? 140 : 2500 + Math.random() * 4500)
+    }
+
+    // The lid edge sits p of the way down the eye. Cells above it become eyelid, the cell it crosses blends, and a
+    // lash line rides the edge (resting on the bottom row when shut). The middle of the lid leads the corners a little,
+    // so it sweeps down as a curve rather than a flat shutter.
+    function drawEyes(g: Grid, p: number) {
+      for (const e of g.eyes) {
+        const n = e.r1 - e.r0
+        const w = e.c1 - e.c0
+        for (let c = e.c0; c < e.c1; c++) {
+          const edge = p * n * (0.88 + 0.12 * Math.sin((Math.PI * (c - e.c0 + 0.5)) / w))
+          const lid = e.lid[c - e.c0]
+          for (let r = 0; r < n; r++) {
+            const i = (e.r0 + r) * g.cols + c
+            const cover = Math.min(1, Math.max(0, edge - r))
+            let t = g.tone[i] + (lid - g.tone[i]) * cover
+            const lashW = p > 0.05 ? Math.max(0, 1 - Math.abs(r + 1 - edge)) : 0
+            if (lashW) t = darker(t, lid + (e.lash - lid) * lashW * 0.9)
+            ctx.clearRect(c * g.cellW, (e.r0 + r) * g.cellH, g.cellW, g.cellH)
+            stamp(ctx, g, levelOf(t), c, e.r0 + r)
+          }
+        }
+      }
     }
 
     function loop(now: number) {
       raf = requestAnimationFrame(loop)
-      if (now - last < frameMs - 2 || document.hidden) return
+      // Blinks run at the display's full rate (a few frames at most), so they never look stepped.
+      if ((now - last < frameMs - 2 && !blink.at) || document.hidden) return
       if (grid && scrollY > grid.height * 1.1) return
       last = now
       const t = performance.now()
@@ -222,7 +305,7 @@ export function AsciiPortrait({
       ro.disconnect()
       cancelAnimationFrame(raf)
     }
-  }, [src, fontSize, maxDpr, intensity, ink, alive, focus?.fx, focus?.fy, focus?.cx, focus?.cy, focus?.zoom])
+  }, [src, fontSize, maxDpr, intensity, ink, alive, focus?.fx, focus?.fy, focus?.cx, focus?.cy, focus?.zoom, eyes])
 
   return <canvas ref={ref} aria-hidden className={className} />
 }

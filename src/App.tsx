@@ -61,6 +61,11 @@ export default function App() {
 
 // The whole head in profile, nudged so the eye sits a little above the middle of the cover.
 const FACE = { fx: 0.55, fy: 0.42, cx: 0.5, cy: 0.45, zoom: 1 }
+// The near eye, and the sliver of the far one past the nose bridge (cover photo, 0–1). They blink together.
+const EYES = [
+  { x0: 0.555, y0: 0.4, x1: 0.655, y1: 0.442 },
+  { x0: 0.705, y0: 0.416, x1: 0.743, y1: 0.452 },
+]
 
 // The portrait, always as ASCII, pinned behind the page. The white sheet scrolls up over it.
 function Cover() {
@@ -69,7 +74,7 @@ function Cover() {
       aria-hidden
       className="pointer-events-none fixed inset-x-0 top-0 -z-10 mx-auto h-[min(54svh,470px)] w-full max-w-lg overflow-hidden [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)]"
     >
-      <AsciiPortrait src="/cover-ascii.jpg" ink="dark" intensity={1.25} alive focus={FACE} className="cover-ascii absolute inset-0 size-full" />
+      <AsciiPortrait src="/cover-ascii.jpg" ink="dark" intensity={1.25} alive focus={FACE} eyes={EYES} className="cover-ascii absolute inset-0 size-full" />
     </div>
   )
 }
