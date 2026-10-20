@@ -158,9 +158,11 @@
     }
 
     /* Liquid glass for controls that sit on top of media (the reel arrows): a clear lens rather than frosted.
-       Barely any fill or blur, so the screenshot shows through; the shape comes from light instead: a bright rim
-       that is strongest top-left and bottom-right (::before), a soft specular sheen across the top (::after),
-       inner edge glow, and a faint contact shadow. The chevron is dark with a white halo, readable on any screen. */
+       Barely any fill, so the screenshot shows through; the shape comes from light instead: a bright rim that is
+       strongest top-left and bottom-right (::before), a soft specular sheen across the top (::after), inner edge
+       glow, and a faint contact shadow. The chevron is dark with a white halo, readable on any screen.
+       Deliberately no backdrop-filter: it sits over playing video, and a backdrop filter would be re-run on every
+       video frame. Everything here is static paint, drawn once; hover/press only touch background and transform. */
     .glass {
         position: relative;
         isolation: isolate;
@@ -169,7 +171,7 @@
         justify-content: center;
         border-radius: 9999px;
         color: var(--color-fg);
-        background: rgb(255 255 255 / 0.04);
+        background: rgb(255 255 255 / 0.07);
         box-shadow:
             inset 0 0 0 0.5px rgb(255 255 255 / 0.5),
             inset 0 0 6px rgb(255 255 255 / 0.22),
@@ -177,8 +179,6 @@
             inset 2px 3px 6px -4px rgb(255 255 255 / 0.7),
             0 1px 1px rgb(9 9 11 / 0.06),
             0 8px 22px -8px rgb(9 9 11 / 0.3);
-        -webkit-backdrop-filter: blur(0.5px) saturate(160%) brightness(1.04);
-        backdrop-filter: blur(0.5px) saturate(160%) brightness(1.04);
         transition:
             background-color 0.25s,
             transform 0.3s var(--ease-out-expo),
@@ -228,7 +228,7 @@
     .glass svg {
         width: 1.15rem;
         height: 1.15rem;
-        filter: drop-shadow(0 0 1.5px rgb(255 255 255 / 0.95)) drop-shadow(0 0 4px rgb(255 255 255 / 0.6));
+        filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.95));
     }
 
     .chip {
