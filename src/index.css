@@ -333,6 +333,81 @@
     }
 }
 
+/* AI assistant buttons (see ai-glow.tsx): an indigo gradient border that rotates, and a soft blurred halo
+   that breathes. Colours are the site's indigo ramp, so it reads as the one accent, just alive.
+   Cheap on phones: the ring is a gradient square turning behind the button (transform only, on the
+   compositor), sized just past the button's diagonal; the halo is blurred once and only its opacity animates. */
+.ai-glow {
+    --ai-stops: #3b4fd8, #6577e4 18%, #d5dafa 30%, #9fabf0 42%, #3b4fd8 58%, #7b6cf0 74%, #c7cdf8 86%, #3b4fd8;
+    position: relative;
+    display: inline-flex;
+    isolation: isolate;
+    border-radius: 9999px;
+    padding: 1.5px;
+}
+.ai-glow > :last-child {
+    position: relative;
+    flex: 1;
+}
+.ai-glow-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+}
+.ai-glow-ring::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(110%, 4rem);
+    aspect-ratio: 1;
+    background: conic-gradient(from 0deg, var(--ai-stops));
+    transform: translate(-50%, -50%);
+}
+.ai-glow::before {
+    content: "";
+    position: absolute;
+    inset: 2px -2px -2px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(100deg, #9fabf0, #3b4fd8 35%, #7b6cf0 65%, #c7cdf8);
+    filter: blur(12px);
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .ai-glow-ring::before {
+        animation: ai-spin 4s linear infinite;
+        will-change: transform;
+    }
+    .ai-glow::before {
+        animation: ai-breathe 3.2s ease-in-out infinite;
+        will-change: opacity;
+    }
+    .ai-glow:hover::before {
+        animation-duration: 1.6s;
+    }
+}
+
+@keyframes ai-spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes ai-breathe {
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+    50% {
+        opacity: 0.75;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .enter,
     .toast-in,

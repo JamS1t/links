@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MessageCircle, X } from 'lucide-react'
+import { Sparkles, X } from 'lucide-react'
+import { AiGlow } from './ai-glow'
 import { OPEN_EVENT, postChat, SITE, splitLinks, splitSSE, type StreamEvent } from '@/lib/chat'
 
 // Same assistant as the sitsit.dev chat widget, restyled only where this page differs.
@@ -215,16 +216,18 @@ export function ChatWidget() {
               <X className="size-4" />
             </button>
           )}
-          <button
-            ref={launcherRef}
-            type="button"
-            onClick={openPanel}
-            className={`btn btn-primary ${mini ? 'w-11 !p-0' : ''} ${LAUNCHER_SHADOW}`}
-            aria-haspopup="dialog"
-            aria-label={mini ? 'Ask about my work' : undefined}
-          >
-            {mini ? <MessageCircle className="!size-5" /> : 'Ask about my work'}
-          </button>
+          <AiGlow className={LAUNCHER_SHADOW}>
+            <button
+              ref={launcherRef}
+              type="button"
+              onClick={openPanel}
+              className={`btn btn-primary ${mini ? 'w-11 !p-0' : ''}`}
+              aria-haspopup="dialog"
+              aria-label={mini ? 'Ask about my work' : undefined}
+            >
+              {mini ? <Sparkles className="!size-5" /> : <><Sparkles className="text-[#c7cdf8]" />Ask about my work</>}
+            </button>
+          </AiGlow>
         </div>
       )}
 

@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from 'react'
-import { ArrowUpRight, CalendarDays, Check, ChevronRight, Copy, Globe, Mail, MapPin, MessageCircle, Share2, UserPlus } from 'lucide-react'
+import { ArrowUpRight, CalendarDays, Check, ChevronRight, Copy, Globe, Mail, MapPin, Share2, Sparkles, UserPlus } from 'lucide-react'
 import { Toaster } from '@/components/toast'
 import { toast } from '@/lib/toast'
 import { AsciiPortrait } from '@/components/ascii-portrait'
 import { BrandIcon } from '@/components/brand-icons'
+import { AiGlow } from '@/components/ai-glow'
 import { ChatWidget } from '@/components/chat-widget'
 import { Work } from '@/components/work'
 import { openChat } from '@/lib/chat'
@@ -130,10 +131,12 @@ function Actions() {
         <CalendarDays />
         Book a 20-min intro call
       </a>
-      <button type="button" onClick={openChat} className="btn btn-secondary btn-lg w-full">
-        <MessageCircle />
-        Ask my AI assistant
-      </button>
+      <AiGlow className="w-full">
+        <button type="button" onClick={openChat} className="btn btn-lg w-full bg-canvas text-fg hover:bg-subtle">
+          <Sparkles className="text-accent" />
+          Ask my AI assistant
+        </button>
+      </AiGlow>
       <div className="grid grid-cols-3 gap-2.5">
         <ActionTile label="Email" icon={<Mail />} href={`mailto:${profile.email}?subject=Project%20inquiry`} />
         <ActionTile label={copied ? 'Copied' : 'Copy email'} icon={copied ? <Check /> : <Copy />} onClick={copyEmail} />
