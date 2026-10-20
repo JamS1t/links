@@ -165,11 +165,11 @@ function RowArrow({ dir, hidden, onClick }: { dir: 1 | -1; hidden: boolean; onCl
       disabled={hidden}
       aria-controls="work-reels"
       aria-label={dir === 1 ? 'Next project' : 'Previous project'}
-      className={`btn btn-secondary absolute top-[calc(4px+0.2625*(100cqw-40px))] size-11 -translate-y-1/2 !p-0 transition-opacity duration-200 sm:top-[calc(4px+0.24375*(100cqw-40px))] ${
+      className={`glass absolute top-[calc(4px+0.2625*(100cqw-40px))] size-10 -translate-y-1/2 sm:top-[calc(4px+0.24375*(100cqw-40px))] ${
         dir === 1 ? 'right-3' : 'left-3'
       } ${hidden ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
     >
-      <Icon />
+      <Icon strokeWidth={2.25} />
     </button>
   )
 }
