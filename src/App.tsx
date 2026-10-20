@@ -59,8 +59,8 @@ export default function App() {
   )
 }
 
-// Nose and mouth in the cover photo, placed in the clear upper part of the cover.
-const FACE = { fx: 0.6, fy: 0.46, cx: 0.5, cy: 0.42, zoom: 1.45 }
+// The whole head in profile, nudged so the eye sits a little above the middle of the cover.
+const FACE = { fx: 0.55, fy: 0.42, cx: 0.5, cy: 0.45, zoom: 1 }
 
 // The portrait, always as ASCII, pinned behind the page. The white sheet scrolls up over it.
 function Cover() {
