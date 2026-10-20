@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Project } from '@/data'
 
 const isLive = (s: Project['status']) => s === 'Live' || s === 'Maintained'
@@ -76,25 +76,62 @@ function Reel({ project }: { project: Project }) {
 export function Work({ projects }: { projects: Project[] }) {
   const withMedia = projects.filter((p) => p.video)
   const rest = projects.filter((p) => !p.video)
+  const row = useRef<HTMLUListElement>(null)
+  const [edge, setEdge] = useState({ start: true, end: false })
+
+  // Which way the row can still scroll; the arrow for a finished direction hides.
+  useEffect(() => {
+    const el = row.current
+    if (!el) return
+    const update = () => {
+      const max = el.scrollWidth - el.clientWidth
+      setEdge({ start: el.scrollLeft <= 4, end: el.scrollLeft >= max - 4 })
+    }
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('scroll', update)
+      ro.disconnect()
+    }
+  }, [])
+
+  // One card per press; snap-mandatory lands it exactly.
+  function step(dir: 1 | -1) {
+    const el = row.current
+    const card = el?.firstElementChild as HTMLElement | null
+    if (!el || !card) return
+    const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollBy({ left: dir * (card.offsetWidth + 16), behavior: smooth ? 'smooth' : 'auto' })
+  }
 
   return (
     <div className="flex flex-col gap-5">
-      <ul className="-mx-5 flex snap-x overscroll-x-contain snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 pt-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {withMedia.map((p) => (
-          <li key={p.name} className="w-[84%] shrink-0 snap-start sm:w-[78%]">
-            <a href={p.href} target="_blank" rel="noopener" className="group flex flex-col gap-3">
-              <Reel project={p} />
-              <span className="flex flex-col gap-1 px-0.5">
-                <span className="flex items-baseline gap-2.5">
-                  <span className="text-[17px] font-semibold tracking-tight transition-colors group-hover:text-accent">{p.name}</span>
-                  <span className={isLive(p.status) ? 'status is-live' : 'status'}>{p.status}</span>
+      <div className="@container relative -mx-5">
+        <ul ref={row} id="work-reels" className="flex snap-x overscroll-x-contain snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 pt-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {withMedia.map((p) => (
+            <li key={p.name} className="w-[84%] shrink-0 snap-start sm:w-[78%]">
+              <a href={p.href} target="_blank" rel="noopener" className="group flex flex-col gap-3">
+                <Reel project={p} />
+                <span className="flex flex-col gap-1 px-0.5">
+                  <span className="flex items-baseline gap-2.5">
+                    <span className="text-[17px] font-semibold tracking-tight transition-colors group-hover:text-accent">{p.name}</span>
+                    <span className={isLive(p.status) ? 'status is-live' : 'status'}>{p.status}</span>
+                  </span>
+                  <span className="text-[15px] leading-snug text-fg-3">{p.tagline}</span>
                 </span>
-                <span className="text-[15px] leading-snug text-fg-3">{p.tagline}</span>
-              </span>
-            </a>
-          </li>
-        ))}
-      </ul>
+              </a>
+            </li>
+          ))}
+        </ul>
+        {withMedia.length > 1 && (
+          <>
+            <RowArrow dir={-1} hidden={edge.start} onClick={() => step(-1)} />
+            <RowArrow dir={1} hidden={edge.end} onClick={() => step(1)} />
+          </>
+        )}
+      </div>
       {rest.length > 0 && (
         <ul className="panel">
           {rest.map((p) => (
@@ -114,5 +151,25 @@ export function Work({ projects }: { projects: Project[] }) {
         </ul>
       )}
     </div>
+  )
+}
+
+/** Previous/next button over the reel row, centred on the product windows (card is 84%/78% of the row minus its
+ *  20px padding, frame is 16:10, row has 4px top padding). Fades out once that direction has nothing left. */
+function RowArrow({ dir, hidden, onClick }: { dir: 1 | -1; hidden: boolean; onClick: () => void }) {
+  const Icon = dir === 1 ? ChevronRight : ChevronLeft
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={hidden}
+      aria-controls="work-reels"
+      aria-label={dir === 1 ? 'Next project' : 'Previous project'}
+      className={`btn btn-secondary absolute top-[calc(4px+0.2625*(100cqw-40px))] size-11 -translate-y-1/2 !p-0 transition-opacity duration-200 sm:top-[calc(4px+0.24375*(100cqw-40px))] ${
+        dir === 1 ? 'right-3' : 'left-3'
+      } ${hidden ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
+    >
+      <Icon />
+    </button>
   )
 }
