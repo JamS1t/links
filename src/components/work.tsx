@@ -83,17 +83,26 @@ export function Work({ projects }: { projects: Project[] }) {
   useEffect(() => {
     const el = row.current
     if (!el) return
+    // Read scroll position at most once a frame, and only re-render when an end is reached or left.
+    let frame = 0
     const update = () => {
+      frame = 0
       const max = el.scrollWidth - el.clientWidth
-      setEdge({ start: el.scrollLeft <= 4, end: el.scrollLeft >= max - 4 })
+      const start = el.scrollLeft <= 4
+      const end = el.scrollLeft >= max - 4
+      setEdge((e) => (e.start === start && e.end === end ? e : { start, end }))
+    }
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update)
     }
     update()
-    el.addEventListener('scroll', update, { passive: true })
-    const ro = new ResizeObserver(update)
+    el.addEventListener('scroll', schedule, { passive: true })
+    const ro = new ResizeObserver(schedule)
     ro.observe(el)
     return () => {
-      el.removeEventListener('scroll', update)
+      el.removeEventListener('scroll', schedule)
       ro.disconnect()
+      cancelAnimationFrame(frame)
     }
   }, [])
 
