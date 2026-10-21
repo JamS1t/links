@@ -34,6 +34,12 @@ export async function postChat(body: string, signal: AbortSignal): Promise<Respo
   }
   throw lastError
 }
+
+/** Wakes the chat function while the visitor types, so the first reply skips the cold start.
+ *  The API answers 204 without calling a model. no-cors: the response is never read. */
+export function warmChat() {
+  fetch(CHAT_APIS[working], { method: 'GET', mode: 'no-cors', cache: 'no-store', credentials: 'omit' }).catch(() => {})
+}
 export const OPEN_EVENT = 'chat:open'
 
 /** Opens the chat panel from anywhere on the page. */

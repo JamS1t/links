@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Sparkles, X } from 'lucide-react'
 import { AiGlow } from './ai-glow'
-import { OPEN_EVENT, postChat, SITE, splitLinks, splitSSE, type StreamEvent } from '@/lib/chat'
+import { OPEN_EVENT, postChat, SITE, splitLinks, splitSSE, warmChat, type StreamEvent } from '@/lib/chat'
 
 // Same assistant as the sitsit.dev chat widget, restyled only where this page differs.
 
@@ -17,6 +17,8 @@ const LOST = 'Connection lost. Try again.'
 // Distinct from OFFLINE (the server's own 503), so the two failures can be told apart.
 const UNREACHABLE = "Couldn't reach the assistant. Check your connection and try again, or use the contact form."
 const MINI_KEY = 'chat:minimized'
+// Past this many pixels of scroll the launcher shrinks to its icon; back near the top it expands again.
+const SCROLL_MINI = 80
 const LAUNCHER_SHADOW = 'shadow-[0_1px_2px_rgb(9_9_11/0.04),0_16px_40px_-20px_rgb(9_9_11/0.45)]'
 const PANEL_SHADOW = 'sm:shadow-[0_1px_2px_rgb(9_9_11/0.04),0_16px_40px_-20px_rgb(9_9_11/0.12)]'
 
@@ -56,6 +58,7 @@ export function ChatWidget() {
       return false
     }
   })
+  const [scrolled, setScrolled] = useState(() => window.scrollY > SCROLL_MINI)
   const rootRef = useRef<HTMLDivElement>(null)
   const openerRef = useRef<HTMLElement | null>(null)
   const launcherRef = useRef<HTMLButtonElement>(null)
@@ -69,6 +72,12 @@ export function ChatWidget() {
     const onOpen = () => openPanel()
     window.addEventListener(OPEN_EVENT, onOpen)
     return () => window.removeEventListener(OPEN_EVENT, onOpen)
+  }, [])
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_MINI)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   // Below 640px the panel is a full-screen sheet, so it is modal: the page behind goes inert.
@@ -107,6 +116,7 @@ export function ChatWidget() {
     if (panelRef.current) return inputRef.current?.focus() // already open
     openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     setOpen(true)
+    warmChat()
   }
 
   function close() {
@@ -199,6 +209,8 @@ export function ChatWidget() {
     }
   }
 
+  // A visitor's own minimize sticks; scrolling only shrinks the launcher while they read.
+  const compact = mini || scrolled
   const showStarters = !messages.some((m) => m.role === 'user')
 
   // Portaled to <body> so the mobile sheet can make the rest of the page inert.
@@ -206,7 +218,7 @@ export function ChatWidget() {
     <div ref={rootRef}>
       {!open && (
         <div className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 flex items-center gap-2 sm:right-5 sm:bottom-5">
-          {!mini && (
+          {!compact && (
             <button
               type="button"
               onClick={() => setMinimized(true)}
@@ -221,11 +233,11 @@ export function ChatWidget() {
               ref={launcherRef}
               type="button"
               onClick={openPanel}
-              className={`btn btn-primary ${mini ? 'w-11 !p-0' : ''}`}
+              className={`btn btn-primary ${compact ? 'w-11 !p-0' : ''}`}
               aria-haspopup="dialog"
-              aria-label={mini ? 'Ask about my work' : undefined}
+              aria-label={compact ? 'Ask about my work' : undefined}
             >
-              {mini ? <Sparkles className="!size-5" /> : <><Sparkles className="text-[#c7cdf8]" />Ask about my work</>}
+              {compact ? <Sparkles className="!size-5" /> : <><Sparkles className="text-[#c7cdf8]" />Ask about my work</>}
             </button>
           </AiGlow>
         </div>
