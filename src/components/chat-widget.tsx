@@ -62,6 +62,7 @@ export function ChatWidget() {
   const rootRef = useRef<HTMLDivElement>(null)
   const openerRef = useRef<HTMLElement | null>(null)
   const launcherRef = useRef<HTMLButtonElement>(null)
+  const minimizeRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const stopRef = useRef<HTMLButtonElement>(null)
@@ -75,7 +76,12 @@ export function ChatWidget() {
   }, [])
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > SCROLL_MINI)
+    const onScroll = () => {
+      const past = window.scrollY > SCROLL_MINI
+      // The minimize button unmounts when the launcher shrinks, so keep keyboard focus on the launcher.
+      if (past && document.activeElement === minimizeRef.current) launcherRef.current?.focus({ preventScroll: true })
+      setScrolled(past)
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -220,6 +226,7 @@ export function ChatWidget() {
         <div className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 flex items-center gap-2 sm:right-5 sm:bottom-5">
           {!compact && (
             <button
+              ref={minimizeRef}
               type="button"
               onClick={() => setMinimized(true)}
               className="flex size-8 items-center justify-center rounded-full bg-canvas text-fg-3 shadow-[inset_0_0_0_1px_var(--color-line-strong),0_1px_2px_rgb(9_9_11/0.04)] hover:text-fg"
