@@ -17,8 +17,10 @@ const LOST = 'Connection lost. Try again.'
 // Distinct from OFFLINE (the server's own 503), so the two failures can be told apart.
 const UNREACHABLE = "Couldn't reach the assistant. Check your connection and try again, or use the contact form."
 const MINI_KEY = 'chat:minimized'
-// Past this many pixels of scroll the launcher shrinks to its icon; back near the top it expands again.
+// Each visit opens with the full launcher; past this many pixels of scroll it shrinks to its icon and stays
+// that way for the rest of the visit (sessionStorage, so reloads keep it and a new tab or visit starts full).
 const SCROLL_MINI = 80
+const SCROLLED_KEY = 'chat:scrolled'
 const LAUNCHER_SHADOW = 'shadow-[0_1px_2px_rgb(9_9_11/0.04),0_16px_40px_-20px_rgb(9_9_11/0.45)]'
 const PANEL_SHADOW = 'sm:shadow-[0_1px_2px_rgb(9_9_11/0.04),0_16px_40px_-20px_rgb(9_9_11/0.12)]'
 
@@ -58,10 +60,16 @@ export function ChatWidget() {
       return false
     }
   })
-  const [scrolled, setScrolled] = useState(() => window.scrollY > SCROLL_MINI)
+  const [scrolled, setScrolled] = useState(() => {
+    try {
+      if (sessionStorage.getItem(SCROLLED_KEY) === '1') return true
+    } catch {}
+    return false
+  })
   const rootRef = useRef<HTMLDivElement>(null)
   const openerRef = useRef<HTMLElement | null>(null)
   const launcherRef = useRef<HTMLButtonElement>(null)
+  const minimizeRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const stopRef = useRef<HTMLButtonElement>(null)
@@ -75,10 +83,21 @@ export function ChatWidget() {
   }, [])
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > SCROLL_MINI)
+    if (scrolled) return
+    const onScroll = () => {
+      if (window.scrollY <= SCROLL_MINI) return
+      // The minimize button hides when the launcher shrinks, so keep keyboard focus on the launcher.
+      if (document.activeElement === minimizeRef.current) launcherRef.current?.focus({ preventScroll: true })
+      setScrolled(true)
+      try {
+        sessionStorage.setItem(SCROLLED_KEY, '1')
+      } catch {}
+      window.removeEventListener('scroll', onScroll)
+    }
+    onScroll() // a reload that restores the scroll position
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  },[scrolled])
 
   // Below 640px the panel is a full-screen sheet, so it is modal: the page behind goes inert.
   useEffect(() => {
@@ -218,26 +237,33 @@ export function ChatWidget() {
     <div ref={rootRef}>
       {!open && (
         <div className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 flex items-center gap-2 sm:right-5 sm:bottom-5">
-          {!compact && (
-            <button
-              type="button"
-              onClick={() => setMinimized(true)}
-              className="flex size-8 items-center justify-center rounded-full bg-canvas text-fg-3 shadow-[inset_0_0_0_1px_var(--color-line-strong),0_1px_2px_rgb(9_9_11/0.04)] hover:text-fg"
-              aria-label="Minimize chat button"
-            >
-              <X className="size-4" />
-            </button>
-          )}
+          {/* Stays mounted and fades out, so collapsing on scroll animates instead of jumping. */}
+          <button
+            ref={minimizeRef}
+            type="button"
+            onClick={() => setMinimized(true)}
+            className={`flex size-8 items-center justify-center rounded-full bg-canvas text-fg-3 shadow-[inset_0_0_0_1px_var(--color-line-strong),0_1px_2px_rgb(9_9_11/0.04)] transition-[opacity,scale,visibility] duration-300 ease-out motion-reduce:transition-none hover:text-fg ${compact ? 'invisible scale-75 opacity-0' : ''}`}
+            aria-label="Minimize chat button"
+          >
+            <X className="size-4" />
+          </button>
           <AiGlow className={LAUNCHER_SHADOW}>
             <button
               ref={launcherRef}
               type="button"
               onClick={openPanel}
-              className={`btn btn-primary ${compact ? 'w-11 !p-0' : ''}`}
+              className={`btn btn-primary gap-0 transition-[padding,background-color,box-shadow,color] duration-300 ease-out motion-reduce:transition-none ${compact ? 'px-3' : ''}`}
               aria-haspopup="dialog"
-              aria-label={compact ? 'Ask about my work' : undefined}
             >
-              {compact ? <Sparkles className="!size-5" /> : <><Sparkles className="text-[#c7cdf8]" />Ask about my work</>}
+              <Sparkles
+                className={`shrink-0 transition-[width,height,color] duration-300 ease-out motion-reduce:transition-none ${compact ? '!size-5 text-canvas' : '!size-[1.05rem] text-[#c7cdf8]'}`}
+              />
+              {/* The label folds to zero width (0fr grid track) but stays in the DOM as the button's name. */}
+              <span
+                className={`grid transition-[grid-template-columns,opacity,margin] duration-300 ease-out motion-reduce:transition-none ${compact ? 'grid-cols-[0fr] opacity-0' : 'ml-2 grid-cols-[1fr]'}`}
+              >
+                <span className="overflow-hidden">Ask about my work</span>
+              </span>
             </button>
           </AiGlow>
         </div>
