@@ -8,6 +8,7 @@ export const profile = {
   email: 'jamescarlsitsit@gmail.com',
   site: 'https://sitsit.dev',
   booking: 'https://cal.com/sitsit.dev/intro',
+  demos: 'https://demos.sitsit.dev/',
 }
 
 export type Social = 'github' | 'linkedin' | 'instagram'
