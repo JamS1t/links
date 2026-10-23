@@ -22,6 +22,33 @@ export default function App() {
           <Intro />
           <Actions />
           <Section
+            title="Live demos"
+            action={
+              <a href={profile.demos} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-[14px] font-medium text-fg transition-colors hover:text-accent">
+                All demos
+                <ArrowUpRight className="size-3.5" aria-hidden />
+              </a>
+            }
+          >
+            <a href={`${profile.demos}sales/`} target="_blank" rel="noopener" className="panel group block overflow-hidden transition-colors hover:bg-subtle">
+              <img src="/demos/order-assistant-800.webp" width={800} height={500} alt="" loading="lazy" decoding="async" className="aspect-[16/10] w-full border-b border-line object-cover object-top" />
+              <span className="flex items-center gap-3 px-4 py-3.5">
+                <span className="min-w-0">
+                  <span className="block text-[16px] font-medium transition-colors group-hover:text-accent">Try my chat order assistant</span>
+                  <span className="block text-[14px] text-fg-4">Order, pay in test mode, build your own shop</span>
+                </span>
+                <ArrowUpRight className="ml-auto size-4 shrink-0 text-fg-4" aria-hidden />
+              </span>
+            </a>
+            <p className="text-[12px] leading-relaxed text-fg-4">
+              Sample shop, test payments, not client work. Photos in the screenshot are from Wikimedia Commons;{' '}
+              <a href={`${profile.demos}sales/#credits`} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-fg">
+                credits
+              </a>
+              .
+            </p>
+          </Section>
+          <Section
             title="Selected work"
             action={
               <a href={`${profile.site}/work/`} className="inline-flex items-center gap-1 text-[14px] font-medium text-fg transition-colors hover:text-accent">
